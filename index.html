@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F6F6F8">
+<meta property="og:title" content="شهادة إتمام من منصة سَرْمَد">
+<meta property="og:description" content="تحقق من صحة الشهادة الصادرة من منصة سَرْمَد لهندسة البرمجيات والأمن السيبراني">
+<meta property="og:image" content="https://i.ibb.co/PZsJ4ptx/logo.png">
+<meta property="og:type" content="website">
 <style>
 /* ============================================================
    سَرْمَد — نظام التصميم
@@ -331,6 +335,11 @@ img{ -webkit-user-drag:none; user-drag:none; }
 .challenge-card{ padding:16px; margin-bottom:16px; border:1.5px dashed var(--red); }
 .leaderboard-row{ display:flex; align-items:center; gap:12px; padding:12px 14px; margin-bottom:8px; }
 .leaderboard-rank{ width:26px; text-align:center; font-weight:800; color: var(--ink-soft); }
+.cert-card{ padding:16px; margin-bottom:14px; text-align:center; }
+.cert-card img{ width:100%; border-radius:14px; margin-bottom:12px; border:1px solid var(--line); }
+.cert-verified-badge{ display:inline-flex; align-items:center; gap:6px; background:#e6f6ea; color:#1c9c4a; font-weight:700; font-size:13px; padding:8px 16px; border-radius:99px; margin-bottom:14px; }
+.linkedin-btn{ display:flex; align-items:center; justify-content:center; gap:8px; background:#0A66C2; color:#fff; border:none; border-radius:999px; padding:13px; font-weight:700; font-size:14px; cursor:pointer; width:100%; }
+.rights-footer{ text-align:center; font-size:11px; color:#AAA; margin-top:18px; }
 .notif-item{ display:flex; gap:12px; padding:14px; margin-bottom:8px; align-items:flex-start; }
 .notif-item.unread{ border-inline-start:3px solid var(--red); }
 .notif-icon{ width:36px; height:36px; border-radius:10px; background:var(--red-dim); color:var(--red); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -344,6 +353,16 @@ img{ -webkit-user-drag:none; user-drag:none; }
 <div class="offline-banner" id="offline-banner">لا يوجد اتصال بالإنترنت حاليًا</div>
 
 <div id="toast-host"></div>
+
+<!-- ============ صفحة التحقق من الشهادة (عامة، بدون تسجيل دخول) ============ -->
+<div id="cert-verify-root" style="display:none; min-height:100vh; padding: 30px 18px;">
+  <div style="max-width:480px; margin:0 auto;">
+    <div class="auth-hero">
+      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
+    </div>
+    <div id="cert-verify-body"><div class="spinner"></div></div>
+  </div>
+</div>
 
 <!-- ============ شاشات المصادقة ============ -->
 <div id="auth-root">
@@ -425,14 +444,20 @@ img{ -webkit-user-drag:none; user-drag:none; }
     <div class="auth-hero">
       <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
       <h1>التحقق بخطوتين</h1>
-      <p>أرسلنا رابط تأكيد إلى <b id="twofa-email-display"></b> — افتح بريدك واضغط الرابط لإتمام تسجيل الدخول</p>
+      <p>سنرسل كود تحقق (OTP) عبر رسالة نصية إلى رقمك <b id="twofa-phone-display"></b></p>
     </div>
-    <div class="glass" style="padding:22px; text-align:center;">
-      <div class="spinner"></div>
-      <p class="meta" style="margin-top:6px;">في انتظار تأكيدك... ستدخل تلقائيًا فور الضغط على الرابط</p>
-      <button class="btn btn-secondary btn-block" id="btn-resend-2fa" style="margin-top:14px;">إعادة إرسال الرابط</button>
-      <button class="btn btn-ghost btn-block" id="btn-cancel-2fa" style="margin-top:8px;">تسجيل الخروج</button>
+    <div class="glass" style="padding:22px;">
+      <div id="twofa-step-send">
+        <button class="btn btn-primary btn-block" id="btn-send-otp">إرسال الكود</button>
+      </div>
+      <div id="twofa-step-code" style="display:none;">
+        <div class="field"><label>أدخل الكود المكوّن من 6 أرقام</label><input type="text" inputmode="numeric" maxlength="6" id="otp-code-input" style="text-align:center; font-size:22px; letter-spacing:8px;"></div>
+        <button class="btn btn-primary btn-block" id="btn-confirm-otp">تأكيد</button>
+        <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-resend-2fa">إعادة إرسال الكود</button>
+      </div>
+      <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-cancel-2fa">تسجيل الخروج</button>
     </div>
+    <div id="recaptcha-container"></div>
   </section>
 
 </div>
@@ -479,7 +504,7 @@ img{ -webkit-user-drag:none; user-drag:none; }
 
   <!-- الرئيسية: المسارات -->
   <section class="screen" id="scr-home">
-    <h2 style="font-size:20px; margin-bottom:2px;">مرحبًا 👋</h2>
+    <h2 style="font-size:20px; margin-bottom:2px;">مرحبًا</h2>
     <p style="margin-bottom:14px;" id="home-username">اختر مسارك وابدأ التعلم</p>
 
     <div class="field" style="margin-bottom:16px;">
@@ -584,11 +609,17 @@ img{ -webkit-user-drag:none; user-drag:none; }
       <span class="pill" id="lecture-duration"></span>
       <span class="pill" id="lecture-tasks-count"></span>
     </div>
-    <button class="btn btn-secondary btn-block" id="btn-lecture-notes" style="margin-bottom:14px;">📝 ملاحظاتي الخاصة على هذه المحاضرة</button>
+    <button class="btn btn-secondary btn-block" id="btn-lecture-notes" style="margin-bottom:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      ملاحظاتي الخاصة على هذه المحاضرة
+    </button>
 
     <div class="glass" style="padding:16px; margin-bottom:14px; text-align:center;" id="pomodoro-card">
       <div class="pomodoro-ring" id="pomodoro-ring" style="display:none;"><span id="pomodoro-time">25:00</span></div>
-      <button class="btn btn-primary" id="btn-pomodoro-start">🍅 بدء جلسة مذاكرة (25 دقيقة)</button>
+      <button class="btn btn-primary" id="btn-pomodoro-start" style="display:inline-flex; align-items:center; gap:8px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        بدء جلسة مذاكرة (25 دقيقة)
+      </button>
       <button class="btn btn-ghost" id="btn-pomodoro-stop" style="display:none;">إيقاف الجلسة</button>
     </div>
 
@@ -654,7 +685,13 @@ img{ -webkit-user-drag:none; user-drag:none; }
     <div class="section-title"><h2>ادعُ صديقًا</h2></div>
     <div class="glass" style="padding:18px; margin-bottom:16px;" id="referral-card"></div>
 
-    <button class="btn btn-secondary btn-block" id="btn-share-progress" style="margin-bottom:16px;">📤 مشاركة ملخص تقدمي</button>
+    <button class="btn btn-secondary btn-block" id="btn-share-progress" style="margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      مشاركة ملخص تقدمي
+    </button>
+
+    <div class="section-title"><h2>شهاداتي</h2></div>
+    <div id="my-certificates" style="margin-bottom:20px;"><p class="meta">لا توجد شهادات بعد</p></div>
 
     <div class="section-title"><h2>اشتراكاتي</h2></div>
     <div id="my-subs" style="margin-bottom:20px;"><p class="meta">لا توجد اشتراكات بعد</p></div>
@@ -680,14 +717,25 @@ img{ -webkit-user-drag:none; user-drag:none; }
       <div class="field"><label>كلمة مرور جديدة</label><input type="password" id="new-pass" minlength="6" required></div>
       <button type="submit" class="btn btn-secondary btn-block">تغيير كلمة المرور</button>
     </form>
-    <div class="glass" style="padding:18px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-      <div>
-        <div style="font-weight:700; font-size:14px;">التحقق بخطوتين</div>
-        <div class="meta">رابط تأكيد إضافي بالبريد عند كل تسجيل دخول من جهاز جديد</div>
+    <div class="glass" style="padding:18px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
+        <div>
+          <div style="font-weight:700; font-size:14px;">التحقق بخطوتين (OTP)</div>
+          <div class="meta">كود يصلك برسالة نصية عند كل تسجيل دخول من جهاز جديد</div>
+        </div>
+        <label style="flex-shrink:0;">
+          <input type="checkbox" id="toggle-2fa" style="width:22px; height:22px;">
+        </label>
       </div>
-      <label style="flex-shrink:0;">
-        <input type="checkbox" id="toggle-2fa" style="width:22px; height:22px;">
-      </label>
+      <div id="twofa-setup-flow" style="display:none;">
+        <div class="field"><label>رقم الهاتف (بصيغة دولية، مثال: 20xxxxxxxxx)</label><input type="tel" id="twofa-setup-phone" placeholder="20xxxxxxxxx"></div>
+        <button type="button" class="btn btn-secondary btn-block" id="btn-setup-send-otp">إرسال كود التفعيل</button>
+        <div id="twofa-setup-code-wrap" style="display:none; margin-top:10px;">
+          <div class="field"><label>أدخل الكود</label><input type="text" inputmode="numeric" maxlength="6" id="twofa-setup-code" style="text-align:center; font-size:20px; letter-spacing:6px;"></div>
+          <button type="button" class="btn btn-primary btn-block" id="btn-setup-confirm-otp">تفعيل التحقق بخطوتين</button>
+        </div>
+      </div>
+      <div id="recaptcha-container-settings"></div>
     </div>
 
     <button class="btn btn-secondary btn-block" id="btn-contact">تواصل معنا</button>
@@ -740,7 +788,7 @@ import {
   getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
   signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
   sendPasswordResetEmail, sendEmailVerification, updateProfile, updatePassword, signOut, signInAnonymously,
-  verifyBeforeUpdateEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, deleteUser
+  verifyBeforeUpdateEmail, RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber, deleteUser
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc,
@@ -806,8 +854,10 @@ function toast(msg, ms = 2600){
 
 function fmtDuration(totalSeconds){
   const s = Math.max(0, Math.floor(totalSeconds));
-  const m = Math.floor(s / 60);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
   const r = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
   return `${m}:${String(r).padStart(2,"0")}`;
 }
 
@@ -1065,16 +1115,22 @@ document.getElementById("form-google-complete").addEventListener("submit", async
   const phone = document.getElementById("gc-phone").value.trim();
   if (!/^[a-z0-9_.]+$/.test(username)){ toast("اسم مستخدم غير صالح"); return; }
 
+  const submitBtn = e.target.querySelector("button[type=submit]");
+  submitBtn.disabled = true;
   const userData = {
     firstName: fname, middleName: mname, lastName: lname,
     email: u.email, username, phone,
     isAdmin: (u.email || "").toLowerCase() === APP.adminEmail,
-    plan: "free", createdAt: serverTimestamp()
+    plan: "free", points: 0, badges: [], createdAt: serverTimestamp()
   };
-  await setDoc(doc(db,"users",u.uid), userData);
-  document.getElementById("overlay-google-complete").classList.remove("active");
-  toast("تم إكمال البيانات");
-  await enterApp(u.uid, userData);
+  try{
+    await setDoc(doc(db,"users",u.uid), userData);
+    document.getElementById("overlay-google-complete").classList.remove("active");
+    toast("تم إكمال البيانات");
+    await enterApp(u.uid, userData);
+  }catch(err){
+    toast("تعذّر حفظ بياناتك (" + (err.code || "خطأ") + ") — تحقق من صلاحيات Firestore");
+  } finally { submitBtn.disabled = false; }
 });
 
 function mapAuthError(err){
@@ -1095,7 +1151,10 @@ function mapAuthError(err){
 }
 
 // ================= حالة تسجيل الدخول =================
+let IS_CERT_VERIFY_MODE = false;
+
 onAuthStateChanged(auth, async (user) => {
+  if (IS_CERT_VERIFY_MODE) return; // لا تتدخل في شاشة التحقق العامة من الشهادة
   if (user){
     try{
       const snap = await getDoc(doc(db,"users",user.uid));
@@ -1110,7 +1169,7 @@ onAuthStateChanged(auth, async (user) => {
 
       // بوابة التحقق بخطوتين (لو مفعّلة على هذا الحساب)
       if (userData.twoFactorEnabled && localStorage.getItem(twoFAFlagKey(user.uid)) !== twoFAToday()){
-        start2FAChallenge(user.email, user.uid, userData);
+        start2FAChallenge(userData.phone, user.uid, userData);
         return;
       }
 
@@ -1130,67 +1189,61 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById("btn-logout").onclick = () => signOut(auth);
 
-// ================= التحقق بخطوتين (رابط تأكيد عبر البريد من فايربيز) =================
+// ================= التحقق بخطوتين (كود OTP عبر رسالة نصية من فايربيز) =================
 function twoFAFlagKey(uid){ return `sarmad_2fa_done_${uid}`; }
 function twoFAToday(){ return new Date().toISOString().slice(0,10); }
 
-async function start2FAChallenge(email, uid, userData){
+let twoFAConfirmationResult = null;
+let twoFAPendingUid = null;
+let twoFAPendingUserData = null;
+
+function toE164(phone){
+  const digits = String(phone||"").replace(/\D/g,"");
+  return digits.startsWith("+") ? digits : `+${digits}`;
+}
+
+async function start2FAChallenge(phone, uid, userData){
   document.getElementById("app").style.display = "none";
   document.getElementById("tabbar").style.display = "none";
   document.getElementById("auth-root").style.display = "block";
   showScreen("scr-2fa-wait");
-  document.getElementById("twofa-email-display").textContent = email;
-  try{
-    localStorage.setItem("sarmad_2fa_email", email);
-    localStorage.setItem("sarmad_2fa_uid", uid);
-    const actionCodeSettings = { url: window.location.origin + window.location.pathname, handleCodeInApp: true };
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-  }catch(err){
-    toast("تعذّر إرسال رابط التحقق (" + (err.code||"خطأ") + ") — تأكد أن Email Link مفعّل في Firebase");
-  }
-  window.addEventListener("storage", function onStorage(e){
-    if (e.key === twoFAFlagKey(uid) && e.newValue === twoFAToday()){
-      window.removeEventListener("storage", onStorage);
-      updateDoc(doc(db,"users",uid), { lastLoginAt: serverTimestamp() }).catch(()=>{});
-      enterApp(uid, userData);
-    }
-  });
+  document.getElementById("twofa-phone-display").textContent = phone || "(لا يوجد رقم مسجّل)";
+  document.getElementById("twofa-step-send").style.display = "block";
+  document.getElementById("twofa-step-code").style.display = "none";
+  twoFAPendingUid = uid; twoFAPendingUserData = userData;
 }
-document.getElementById("btn-resend-2fa").onclick = async () => {
-  const email = localStorage.getItem("sarmad_2fa_email");
-  if (!email) return;
+
+async function sendLoginOtp(){
+  const phone = twoFAPendingUserData?.phone;
+  if (!phone){ toast("لا يوجد رقم هاتف مسجّل على هذا الحساب"); return; }
   try{
-    const actionCodeSettings = { url: window.location.origin + window.location.pathname, handleCodeInApp: true };
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    toast("تم إعادة إرسال الرابط");
-  }catch(err){ toast("تعذّر الإرسال، حاول بعد قليل"); }
+    const verifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
+    twoFAConfirmationResult = await signInWithPhoneNumber(auth, toE164(phone), verifier);
+    document.getElementById("twofa-step-send").style.display = "none";
+    document.getElementById("twofa-step-code").style.display = "block";
+    toast("تم إرسال الكود");
+  }catch(err){
+    toast("تعذّر إرسال الكود (" + (err.code||"خطأ") + ") — تأكد أن Phone مفعّل في Firebase");
+  }
+}
+document.getElementById("btn-send-otp").onclick = sendLoginOtp;
+document.getElementById("btn-resend-2fa").onclick = sendLoginOtp;
+
+document.getElementById("btn-confirm-otp").onclick = async () => {
+  const code = document.getElementById("otp-code-input").value.trim();
+  if (!code || !twoFAConfirmationResult) return;
+  try{
+    const result = await twoFAConfirmationResult.confirm(code);
+    localStorage.setItem(twoFAFlagKey(result.user.uid), twoFAToday());
+    updateDoc(doc(db,"users",result.user.uid), { lastLoginAt: serverTimestamp() }).catch(()=>{});
+    toast("تم التحقق بنجاح");
+    await enterApp(result.user.uid, twoFAPendingUserData);
+  }catch(err){
+    toast("الكود غير صحيح أو منتهي الصلاحية");
+  }
 };
 document.getElementById("btn-cancel-2fa").onclick = () => signOut(auth);
 
-// إتمام الدخول عند فتح رابط التحقق بخطوتين نفسه (نفس الجهاز أو جهاز آخر)
-async function completeEmailLinkIfPresent(){
-  if (!isSignInWithEmailLink(auth, window.location.href)) return;
-  let email = localStorage.getItem("sarmad_2fa_email");
-  if (!email) email = window.prompt("أدخل بريدك الإلكتروني لإتمام تسجيل الدخول:");
-  if (!email) return;
-  try{
-    const result = await signInWithEmailLink(auth, email, window.location.href);
-    localStorage.setItem(twoFAFlagKey(result.user.uid), twoFAToday());
-    localStorage.removeItem("sarmad_2fa_email");
-    localStorage.removeItem("sarmad_2fa_uid");
-    window.history.replaceState({}, document.title, window.location.pathname);
-    toast("تم تأكيد الدخول بنجاح");
-    // ندخل هذا التبويب مباشرة أيضًا، بدل الانتظار على onAuthStateChanged أو تبويب آخر
-    const snap = await getDoc(doc(db,"users",result.user.uid));
-    if (snap.exists()){
-      updateDoc(doc(db,"users",result.user.uid), { lastLoginAt: serverTimestamp() }).catch(()=>{});
-      await enterApp(result.user.uid, snap.data());
-    }
-  }catch(err){
-    toast("رابط التحقق غير صالح أو منتهي الصلاحية");
-  }
-}
-completeEmailLinkIfPresent();
 document.getElementById("btn-contact").onclick = () => {
   window.location.href = `mailto:${APP.contactEmail}`;
 };
@@ -1325,53 +1378,90 @@ async function openCourse(id, c){
   favBtn.onclick = () => toggleFavorite("course", id, c.title, c.image, favBtn);
   loadCourseRatings(id);
 
-  // فحص الاشتراك
+  // فحص الاشتراك (للكورسات المدفوعة) والتسجيل (للكورسات المجانية)
   ACTIVE_SUB = null;
-  if (c.isPaid){
-    const subSnap = await getDoc(doc(db,"subscriptions", `${CURRENT_UID}_${id}`));
-    if (subSnap.exists() && subSnap.data().status === "active") ACTIVE_SUB = subSnap.data();
-  }
+  let enrollSnap = null;
+  try{
+    if (c.isPaid){
+      const subSnap = await getDoc(doc(db,"subscriptions", `${CURRENT_UID}_${id}`));
+      if (subSnap.exists() && subSnap.data().status === "active") ACTIVE_SUB = subSnap.data();
+    } else {
+      enrollSnap = await getDoc(doc(db,"courseEnrollments", `${CURRENT_UID}_${id}`));
+    }
+  }catch(err){ /* لو فشل الفحص، نكمل ونعامل الكورس كأنه غير مؤكد الاشتراك بدل ما نوقف الصفحة بالكامل */ }
+  const alreadyEnrolledFree = !c.isPaid && enrollSnap && enrollSnap.exists();
+  const locked = c.isPaid && !ACTIVE_SUB;
+
   const paywall = document.getElementById("course-paywall");
   if (c.isPaid && !ACTIVE_SUB){
+    const egp = c.priceEGP || 0;
+    const usd = c.price || 0;
     paywall.innerHTML = `
       <div class="glass" style="padding:18px; margin-bottom:16px; text-align:center;">
-        <p class="price-tag" style="font-size:22px; color:var(--ink); margin-bottom:4px;">${esc(c.price||"0")}$</p>
+        <p class="price-tag" style="font-size:24px; color:var(--ink); margin-bottom:2px;">${esc(egp)} جنيه مصري</p>
+        <p class="meta" style="margin-bottom:14px;">الدفع عبر PayPal بالدولار (${esc(usd)}$) — باي بال لا يدعم الدفع المباشر بالجنيه المصري</p>
         <p style="margin-bottom:14px;">اشترك للوصول الكامل لمحتوى هذا الكورس</p>
         <div id="paypal-btn-container"></div>
       </div>`;
-    renderPaypal(id, c.price || "0");
+    renderPaypal(id, usd);
+  } else if (!c.isPaid && !alreadyEnrolledFree){
+    paywall.innerHTML = `
+      <div class="glass" style="padding:18px; margin-bottom:16px; text-align:center;">
+        <p style="margin-bottom:14px;">هذا الكورس مجاني بالكامل — اشترك للبدء في المحاضرات</p>
+        <button class="btn btn-primary btn-block" id="btn-subscribe-free">اشتراك في الكورس</button>
+      </div>`;
+    document.getElementById("btn-subscribe-free").onclick = async () => {
+      await ensureEnrolled(id);
+      toast("تم تسجيلك في الكورس بنجاح");
+      openCourse(id, c);
+    };
   } else {
-    paywall.innerHTML = "";
+    paywall.innerHTML = `<div class="locked-banner"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>أنت مشترك في هذا الكورس</span></div>`;
   }
 
   document.getElementById("course-lectures").innerHTML = `<div class="spinner"></div>`;
-  const snap = await getDocs(query(collection(db,"lectures"), where("courseId","==",id), orderBy("order","asc")));
-  const lectures = [];
-  snap.forEach(d => lectures.push({id:d.id, ...d.data()}));
-
-  // نسبة التقدم
+  let lectures = [];
   let doneCount = 0, totalCount = 0;
-  for (const lec of lectures){
-    const tSnap = await getDocs(query(collection(db,"tasks"), where("lectureId","==",lec.id)));
-    tSnap.forEach(td => {
-      totalCount++;
-      if (PROGRESS_MAP[td.id]?.completed) doneCount++;
-    });
+  try{
+    const snap = await getDocs(query(collection(db,"lectures"), where("courseId","==",id)));
+    snap.forEach(d => lectures.push({id:d.id, ...d.data()}));
+    lectures.sort((a,b) => (a.order||0) - (b.order||0));
+
+    // نسبة التقدم
+    for (const lec of lectures){
+      const tSnap = await getDocs(query(collection(db,"tasks"), where("lectureId","==",lec.id)));
+      tSnap.forEach(td => {
+        totalCount++;
+        if (PROGRESS_MAP[td.id]?.completed) doneCount++;
+      });
+    }
+  }catch(err){
+    document.getElementById("course-lectures").innerHTML = `
+      <div class="empty">
+        <p>تعذّر تحميل المحاضرات، تحقق من اتصالك</p>
+        <button class="btn btn-secondary" id="btn-retry-course">إعادة المحاولة</button>
+      </div>`;
+    document.getElementById("btn-retry-course").onclick = () => openCourse(id, c);
+    return;
   }
   const pct = totalCount ? Math.round((doneCount/totalCount)*100) : 0;
   document.getElementById("course-progress-fill").style.width = pct + "%";
   document.getElementById("course-progress-text").textContent = `${pct}% مكتمل (${doneCount}/${totalCount} مهمة)`;
 
-  // عدد الطلاب المسجلين ومتوسط تقدمهم (تقريبي)
-  await ensureEnrolled(id);
-  const freshCourseSnap = await getDoc(doc(db,"courses",id));
-  const freshCourse = freshCourseSnap.exists() ? freshCourseSnap.data() : {};
+  // عدد الطلاب المسجلين فعليًا (مشتركين حقًا، مش مجرد فتح الصفحة) ومتوسط تقدمهم (تقريبي)
+  if (c.isPaid ? !locked : alreadyEnrolledFree) await ensureEnrolled(id); // يحترم زر "اشتراك في الكورس" للمجاني، ولا يسجّله تلقائيًا قبل ما يضغطه
+  let freshCourse = {};
+  try{
+    const freshCourseSnap = await getDoc(doc(db,"courses",id));
+    if (freshCourseSnap.exists()) freshCourse = freshCourseSnap.data();
+  }catch(err){ /* عرض المحاضرات أهم، لا نوقفه بسبب فشل قراءة الإحصائيات */ }
   const enrolledCount = freshCourse.enrolledCount || 0;
   const enrolledEl = document.getElementById("course-enrolled-count");
-  if (enrolledCount > 0){ enrolledEl.style.display = "inline-flex"; enrolledEl.textContent = `👥 ${enrolledCount} طالب مسجل`; }
+  const usersIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  if (enrolledCount > 0){ enrolledEl.style.display = "inline-flex"; enrolledEl.innerHTML = `${usersIconSvg}${enrolledCount} طالب مسجل`; }
   else enrolledEl.style.display = "none";
   const avgCompareEl = document.getElementById("course-avg-compare");
-  if (enrolledCount > 0 && totalCount > 0){
+  if (enrolledCount > 0 && totalCount > 0 && !locked){
     const avgTasksPerStudent = (freshCourse.totalTasksCompletedByAll || 0) / enrolledCount;
     const avgPct = Math.min(100, Math.round((avgTasksPerStudent / totalCount) * 100));
     avgCompareEl.textContent = `متوسط تقدم الطلاب: ${avgPct}% — تقدمك: ${pct}%`;
@@ -1382,7 +1472,6 @@ async function openCourse(id, c){
   const wrap = document.getElementById("course-lectures");
   if (!lectures.length){ wrap.innerHTML = emptyState("لا توجد محاضرات بعد"); return; }
   wrap.innerHTML = "";
-  const locked = c.isPaid && !ACTIVE_SUB;
   lectures.forEach((lec, idx) => {
     const card = document.createElement("div");
     card.className = "card glass card-row" + (locked ? " locked" : "");
@@ -1415,7 +1504,7 @@ function renderPaypal(courseId, price){
         uid: CURRENT_UID, courseId, status:"active",
         startedAt: serverTimestamp(), paypalOrderId: details.id
       });
-      toast("تم الاشتراك بنجاح 🎉");
+      toast("تم الاشتراك بنجاح");
       openCourse(courseId, ACTIVE_COURSE);
     },
     onError: () => toast("حدث خطأ أثناء الدفع")
@@ -1441,10 +1530,11 @@ async function openLecture(lec){
 
   const wrap = document.getElementById("lecture-tasks");
   wrap.innerHTML = `<div class="spinner"></div>`;
-  const snap = await getDocs(query(collection(db,"tasks"), where("lectureId","==",lec.id), orderBy("order","asc")));
+  const snap = await getDocs(query(collection(db,"tasks"), where("lectureId","==",lec.id)));
   const tasks = [];
   snap.forEach(d => tasks.push({id:d.id, ...d.data()}));
-  document.getElementById("lecture-tasks-count").textContent = `📋 ${tasks.length} مهمة`;
+  tasks.sort((a,b) => (a.order||0) - (b.order||0));
+  document.getElementById("lecture-tasks-count").innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:4px;"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4"/><path d="M9 12h6M9 16h6"/></svg>${tasks.length} مهمة`;
 
   if (!tasks.length){ wrap.innerHTML = emptyState("لا توجد مهام بعد"); return; }
   wrap.innerHTML = "";
@@ -1456,8 +1546,8 @@ async function openLecture(lec){
     row.innerHTML = `
       <div class="task-icon">${taskIcon(t.type)}</div>
       <div class="task-body">
-        <div class="t">${idx+1}. ${esc(taskTypeLabel(t.type))}</div>
-        <div class="s">${t.timeLimitSeconds ? `⏳ ${fmtDuration(t.timeLimitSeconds)}` : ""}</div>
+        <div class="t">${idx+1}. ${esc(t.title || taskTypeLabel(t.type))}</div>
+        <div class="s">${t.description ? esc(t.description) + " — " : ""}${t.timeLimitSeconds ? `⏳ ${fmtDuration(t.timeLimitSeconds)}` : ""}</div>
       </div>
       ${done ? `<span class="badge badge-done">تم</span>` : (!prevDone ? `<span class="badge badge-lock">مقفل</span>` : "")}
     `;
@@ -1498,21 +1588,48 @@ async function markTaskComplete(taskId, extra={}){
     completed: true, completedAt: serverTimestamp(), ...extra
   }, { merge:true });
   PROGRESS_MAP[taskId] = { ...(PROGRESS_MAP[taskId]||{}), completed:true, ...extra };
-  await awardPoints(10);
-  await checkBadges();
+  try{ await awardPoints(10); }catch(err){ /* لا يوقف إتمام المهمة */ }
+  try{ await checkBadges(); }catch(err){ /* لا يوقف إتمام المهمة */ }
   if (ACTIVE_COURSE_ID){
     updateDoc(doc(db,"courses",ACTIVE_COURSE_ID), { totalTasksCompletedByAll: increment(1) }).catch(() => {});
   }
 }
 
-// عدد الطلاب المسجلين فعليًا في كورس (مرة واحدة فقط لكل طالب)
+// عدد الطلاب المسجلين فعليًا في كورس (مرة واحدة فقط لكل طالب) — لا يوقف الصفحة أبدًا حتى لو فشل
 async function ensureEnrolled(courseId){
-  const ref = doc(db,"courseEnrollments", `${CURRENT_UID}_${courseId}`);
-  const snap = await getDoc(ref);
-  if (!snap.exists()){
-    await setDoc(ref, { uid: CURRENT_UID, courseId, createdAt: serverTimestamp() });
-    await updateDoc(doc(db,"courses",courseId), { enrolledCount: increment(1) });
+  try{
+    const ref = doc(db,"courseEnrollments", `${CURRENT_UID}_${courseId}`);
+    const snap = await getDoc(ref);
+    if (!snap.exists()){
+      await setDoc(ref, { uid: CURRENT_UID, courseId, createdAt: serverTimestamp() });
+      await updateDoc(doc(db,"courses",courseId), { enrolledCount: increment(1) });
+    }
+  }catch(err){
+    // فشل تسجيل العداد لا يجب أن يمنع ظهور المحاضرات أبدًا
   }
+}
+
+// عنوان ووصف موحّدان لأي مهمة + بوابة تفعيل زر الإتمام بعد وقت محدد
+function taskHeaderHtml(t, fallbackTitle){
+  return `<h2>${esc(t.title || fallbackTitle)}</h2>${t.description ? `<p style="margin-top:-6px;">${esc(t.description)}</p>` : ""}`;
+}
+function gateCompleteButton(btnId, timeLimitSeconds, noteElId){
+  const btn = document.getElementById(btnId);
+  const noteEl = noteElId ? document.getElementById(noteElId) : null;
+  if (!timeLimitSeconds || timeLimitSeconds <= 0) return; // بدون وقت محدد، الزر مفعّل فورًا
+  btn.disabled = true;
+  let left = timeLimitSeconds;
+  const update = () => { if (noteEl) noteEl.textContent = `⏳ الزر سيُفعّل بعد ${fmtDuration(left)}`; };
+  update();
+  const interval = setInterval(() => {
+    left--;
+    update();
+    if (left <= 0){
+      clearInterval(interval);
+      btn.disabled = false;
+      if (noteEl) noteEl.textContent = "يمكنك الآن إتمام المهمة";
+    }
+  }, 1000);
 }
 
 function openTask(t, allTasks, idx){
@@ -1543,11 +1660,13 @@ function openJsonTask(t, closeBtn){
     <div style="position:relative;">
       ${closeBtn}
       <div style="width:46px;height:46px;border-radius:14px;background:${esc(color)}22; color:${esc(color)}; display:flex; align-items:center; justify-content:center; margin-bottom:14px;">${taskIcon("json")}</div>
-      <h2>${esc(content.title || "محتوى")}</h2>
+      ${taskHeaderHtml(t, content.title || "محتوى")}
       <span class="ai-trap" aria-hidden="false">${esc(AI_TRAP_TEXT)}</span>
       <div style="margin:14px 0;">${blocks}</div>
+      ${t.timeLimitSeconds ? `<p class="video-note" id="json-timer-note"></p>` : ""}
       <button class="btn btn-primary btn-block" id="btn-complete-json">إتمام المهمة</button>
     </div>`);
+  gateCompleteButton("btn-complete-json", t.timeLimitSeconds, "json-timer-note");
   document.getElementById("btn-complete-json").onclick = async () => {
     await markTaskComplete(t.id);
     closeTaskSheet(); toast("تم إتمام المهمة ✓");
@@ -1560,14 +1679,16 @@ function openPdfTask(t, closeBtn){
   openTaskSheet(`
     <div style="position:relative;">
       ${closeBtn}
-      <h2>ملف PDF</h2>
+      ${taskHeaderHtml(t, "ملف PDF")}
       <span class="ai-trap" aria-hidden="false">${esc(AI_TRAP_TEXT)}</span>
       <iframe class="pdf-frame allow-context" src="${esc(t.url)}"></iframe>
+      ${t.timeLimitSeconds ? `<p class="video-note" id="pdf-timer-note"></p>` : ""}
       <div style="display:flex; gap:10px; margin-top:14px;">
         <a class="btn btn-secondary" style="flex:1;" href="${esc(t.url)}" download target="_blank" rel="noopener">تحميل الملف</a>
         <button class="btn btn-primary" style="flex:1;" id="btn-complete-pdf">إتمام المهمة</button>
       </div>
     </div>`);
+  gateCompleteButton("btn-complete-pdf", t.timeLimitSeconds, "pdf-timer-note");
   document.getElementById("btn-complete-pdf").onclick = async () => {
     await markTaskComplete(t.id);
     closeTaskSheet(); toast("تم إتمام المهمة ✓");
@@ -1586,7 +1707,7 @@ function openVideoTask(t, closeBtn){
   openTaskSheet(`
     <div style="position:relative;">
       ${closeBtn}
-      <h2>فيديو المحاضرة</h2>
+      ${taskHeaderHtml(t, "فيديو المحاضرة")}
       <div class="video-wrap">${playerHtml}</div>
       <p class="video-note" id="video-progress-note">${isYoutube ? "شاهد الفيديو كاملاً لتفعيل زر الإتمام" : "لا يمكن تخطي الفيديو للأمام — شاهده كاملاً لتفعيل زر الإتمام"}</p>
       <button class="btn btn-primary btn-block" id="btn-complete-video" disabled>إتمام المهمة</button>
@@ -1650,17 +1771,23 @@ function toYoutubeEmbed(url){
 function openMcqTask(t, closeBtn){
   let questions = [];
   try{ questions = JSON.parse(t.questionsJson || "[]"); }catch(e){}
-  let current = 0, score = 0, answers = new Array(questions.length).fill(null);
+  let current = 0, answers = new Array(questions.length).fill(null);
   let timeLeft = t.timeLimitSeconds || 0;
   let timerInterval = null;
 
   function render(){
     const q = questions[current];
-    const optionsHtml = (q.options||[]).map((opt,i) => `
-      <div class="mcq-option" data-i="${i}">
-        <div class="mcq-dot"></div>
-        <div>${esc(opt)}</div>
-      </div>`).join("");
+    const qtype = q.qtype || "single"; // single | multi | essay
+    let bodyHtml = "";
+    if (qtype === "essay"){
+      bodyHtml = `<textarea id="mcq-essay" rows="5" placeholder="اكتب إجابتك هنا..." style="width:100%; border:1px solid var(--line); border-radius:14px; padding:12px; font-family:inherit; font-size:14px;">${esc(answers[current] || "")}</textarea>`;
+    } else {
+      bodyHtml = (q.options||[]).map((opt,i) => `
+        <div class="mcq-option" data-i="${i}">
+          <div class="mcq-dot" style="${qtype==='multi' ? 'border-radius:6px;' : ''}"></div>
+          <div>${esc(opt)}</div>
+        </div>`).join("");
+    }
     openTaskSheet(`
       <div style="position:relative;">
         ${closeBtn}
@@ -1669,22 +1796,43 @@ function openMcqTask(t, closeBtn){
           ${timeLeft ? `<span class="timer-chip" id="mcq-timer">${fmtDuration(timeLeft)}</span>` : ""}
         </div>
         <div class="progress-track" style="margin-bottom:16px;"><div class="progress-fill" style="width:${((current)/questions.length)*100}%"></div></div>
+        ${qtype === "multi" ? `<p class="meta" style="margin-bottom:4px;">يمكن اختيار أكثر من إجابة</p>` : ""}
         <p style="font-weight:700; color:var(--ink); font-size:16px; position:relative;">
           ${esc(q.q)}
           <span class="ai-trap" aria-hidden="false">${esc(AI_TRAP_TEXT)}</span>
         </p>
-        <div id="mcq-options" style="margin-top:14px;">${optionsHtml}</div>
-        <button class="btn btn-primary btn-block" id="btn-mcq-next" disabled style="margin-top:8px;">${current === questions.length-1 ? "إنهاء الاختبار" : "التالي"}</button>
+        <div id="mcq-options" style="margin-top:14px;">${bodyHtml}</div>
+        <button class="btn btn-primary btn-block" id="btn-mcq-next" ${qtype==="essay" ? "" : "disabled"} style="margin-top:8px;">${current === questions.length-1 ? "إنهاء الاختبار" : "التالي"}</button>
       </div>`);
 
-    document.querySelectorAll(".mcq-option").forEach(el => {
-      el.onclick = () => {
-        document.querySelectorAll(".mcq-option").forEach(o => o.classList.remove("selected"));
-        el.classList.add("selected");
-        answers[current] = Number(el.dataset.i);
-        document.getElementById("btn-mcq-next").disabled = false;
+    if (qtype === "essay"){
+      document.getElementById("mcq-essay").addEventListener("input", (e) => { answers[current] = e.target.value; });
+    } else if (qtype === "multi"){
+      const selected = new Set(Array.isArray(answers[current]) ? answers[current] : []);
+      const refreshSelected = () => {
+        document.querySelectorAll(".mcq-option").forEach(o => o.classList.toggle("selected", selected.has(Number(o.dataset.i))));
+        document.getElementById("btn-mcq-next").disabled = selected.size === 0;
       };
-    });
+      refreshSelected();
+      document.querySelectorAll(".mcq-option").forEach(el => {
+        el.onclick = () => {
+          const i = Number(el.dataset.i);
+          if (selected.has(i)) selected.delete(i); else selected.add(i);
+          answers[current] = Array.from(selected);
+          refreshSelected();
+        };
+      });
+    } else {
+      document.querySelectorAll(".mcq-option").forEach(el => {
+        el.onclick = () => {
+          document.querySelectorAll(".mcq-option").forEach(o => o.classList.remove("selected"));
+          el.classList.add("selected");
+          answers[current] = Number(el.dataset.i);
+          document.getElementById("btn-mcq-next").disabled = false;
+        };
+      });
+    }
+
     document.getElementById("btn-mcq-next").onclick = () => {
       if (current < questions.length-1){ current++; render(); }
       else finish();
@@ -1702,14 +1850,29 @@ function openMcqTask(t, closeBtn){
 
   async function finish(){
     if (timerInterval) clearInterval(timerInterval);
-    questions.forEach((q,i) => { if (answers[i] === q.correctIndex) score++; });
-    const pct = Math.round((score/questions.length)*100);
-    await markTaskComplete(t.id, { score: pct });
+    let gradable = 0, correct = 0;
+    const essayAnswers = [];
+    questions.forEach((q,i) => {
+      const qtype = q.qtype || "single";
+      if (qtype === "essay"){
+        essayAnswers.push({ q: q.q, answer: answers[i] || "" });
+      } else if (qtype === "multi"){
+        gradable++;
+        const given = Array.isArray(answers[i]) ? [...answers[i]].sort().join(",") : "";
+        const correctSet = (q.correctIndexes||[]).slice().sort().join(",");
+        if (given === correctSet && given !== "") correct++;
+      } else {
+        gradable++;
+        if (answers[i] === q.correctIndex) correct++;
+      }
+    });
+    const pct = gradable ? Math.round((correct/gradable)*100) : 0;
+    await markTaskComplete(t.id, { score: pct, essayAnswers });
     openTaskSheet(`
       <div style="position:relative; text-align:center; padding-top:10px;">
         ${closeBtn}
         <div style="width:70px;height:70px;border-radius:50%;background:var(--red-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px; font-weight:800; color:var(--red);">${pct}%</div>
-        <h2>نتيجتك: ${score} من ${questions.length}</h2>
+        <h2>نتيجتك: ${correct} من ${gradable}${essayAnswers.length ? ` (+${essayAnswers.length} سؤال مقالي بانتظار المراجعة)` : ""}</h2>
         <p>تم حفظ نتيجتك وإتمام المهمة</p>
         <button class="btn btn-primary btn-block" id="btn-mcq-done">متابعة</button>
       </div>`);
@@ -1727,7 +1890,7 @@ function openCodeTask(t, closeBtn){
   openTaskSheet(`
     <div style="position:relative;">
       ${closeBtn}
-      <h2>مهمة برمجية</h2>
+      ${taskHeaderHtml(t, "مهمة برمجية")}
       <span class="ai-trap" aria-hidden="false">${esc(AI_TRAP_TEXT)}</span>
       <p>${esc(t.instructions||"")}</p>
       <div class="pill-row"><span class="pill">${esc(lang)}</span></div>
@@ -1736,8 +1899,10 @@ function openCodeTask(t, closeBtn){
         <button class="btn btn-secondary" style="flex:1;" id="btn-run-code">تشغيل</button>
         <button class="btn btn-primary" style="flex:1;" id="btn-submit-code">تسليم المهمة</button>
       </div>
+      ${t.timeLimitSeconds ? `<p class="video-note" id="code-timer-note"></p>` : ""}
       <div class="code-output" id="code-output">// النتيجة ستظهر هنا</div>
     </div>`);
+  gateCompleteButton("btn-submit-code", t.timeLimitSeconds, "code-timer-note");
 
   document.getElementById("btn-run-code").onclick = async () => {
     const code = document.getElementById("code-editor").value;
@@ -1871,10 +2036,11 @@ async function loadForum(){
       getDoc(doc(db,"postLikes", `${CURRENT_UID}_${d.id}`)).then(s => { if (s.exists()) likeBtn.classList.add("liked"); });
       likeBtn.onclick = () => toggleLike(d.id, likeBtn, countEl);
     })();
-    const repliesSnap = await getDocs(query(collection(db,"forumReplies"), where("postId","==",d.id), orderBy("createdAt","asc")));
+    const repliesSnap = await getDocs(query(collection(db,"forumReplies"), where("postId","==",d.id)));
     if (!repliesSnap.empty){
+      const sortedReplies = repliesSnap.docs.slice().sort((a,b) => (a.data().createdAt?.seconds||0) - (b.data().createdAt?.seconds||0));
       const rWrap = document.getElementById(`forum-replies-${d.id}`);
-      rWrap.innerHTML = repliesSnap.docs.map(rd => `
+      rWrap.innerHTML = sortedReplies.map(rd => `
         <div style="background:var(--red-dim); border-radius:12px; padding:10px 12px; margin-top:10px;">
           <div style="font-size:12px; font-weight:700; color:var(--red); margin-bottom:2px;">فريق سَرْمَد</div>
           <div style="font-size:13.5px;">${esc(rd.data().text)}</div>
@@ -1907,6 +2073,7 @@ async function loadProfile(){
     ? `آخر تسجيل دخول: ${fmtDate(CURRENT_USER.lastLoginAt)}` : "";
   renderPointsBadges();
   renderReferralCard();
+  loadMyCertificates();
 
   await loadProgress();
   const totalDone = Object.values(PROGRESS_MAP).filter(p => p.completed).length;
@@ -1994,10 +2161,50 @@ document.getElementById("form-change-email").addEventListener("submit", async (e
 // ================= تفعيل/إيقاف التحقق بخطوتين =================
 document.getElementById("toggle-2fa").addEventListener("change", async (e) => {
   const enabled = e.target.checked;
-  await updateDoc(doc(db,"users",CURRENT_UID), { twoFactorEnabled: enabled });
-  CURRENT_USER.twoFactorEnabled = enabled;
-  toast(enabled ? "تم تفعيل التحقق بخطوتين" : "تم إيقاف التحقق بخطوتين");
+  if (!enabled){
+    await updateDoc(doc(db,"users",CURRENT_UID), { twoFactorEnabled: false });
+    CURRENT_USER.twoFactorEnabled = false;
+    document.getElementById("twofa-setup-flow").style.display = "none";
+    toast("تم إيقاف التحقق بخطوتين");
+    return;
+  }
+  document.getElementById("twofa-setup-flow").style.display = "block";
+  document.getElementById("twofa-setup-phone").value = CURRENT_USER.phone || "";
+  document.getElementById("twofa-setup-code-wrap").style.display = "none";
 });
+
+let settingsOtpConfirmation = null;
+document.getElementById("btn-setup-send-otp").onclick = async () => {
+  const phone = document.getElementById("twofa-setup-phone").value.trim();
+  if (!phone){ toast("أدخل رقم الهاتف"); return; }
+  try{
+    const verifier = new RecaptchaVerifier(auth, "recaptcha-container-settings", { size: "invisible" });
+    settingsOtpConfirmation = await linkWithPhoneNumber(auth.currentUser, toE164(phone), verifier);
+    document.getElementById("twofa-setup-code-wrap").style.display = "block";
+    toast("تم إرسال كود التفعيل");
+  }catch(err){
+    if (err.code === "auth/provider-already-linked" || err.code === "auth/credential-already-in-use"){
+      toast("هذا الرقم مرتبط بالفعل بحساب على هذه المنصة");
+    } else {
+      toast("تعذّر الإرسال (" + (err.code||"خطأ") + ") — تأكد أن Phone مفعّل في Firebase");
+    }
+  }
+};
+document.getElementById("btn-setup-confirm-otp").onclick = async () => {
+  const code = document.getElementById("twofa-setup-code").value.trim();
+  if (!code || !settingsOtpConfirmation) return;
+  try{
+    await settingsOtpConfirmation.confirm(code);
+    const phone = document.getElementById("twofa-setup-phone").value.trim();
+    await updateDoc(doc(db,"users",CURRENT_UID), { twoFactorEnabled: true, phone });
+    CURRENT_USER.twoFactorEnabled = true; CURRENT_USER.phone = phone;
+    localStorage.setItem(twoFAFlagKey(CURRENT_UID), twoFAToday()); // هذا الجهاز تحقق بالفعل الآن
+    document.getElementById("twofa-setup-flow").style.display = "none";
+    toast("تم تفعيل التحقق بخطوتين بنجاح");
+  }catch(err){
+    toast("الكود غير صحيح، حاول مرة أخرى");
+  }
+};
 
 // ================= حذف الحساب نهائيًا =================
 document.getElementById("btn-delete-account").addEventListener("click", async () => {
@@ -2041,15 +2248,15 @@ function renderPointsBadges(){
         <div class="meta">${100-pct} نقطة للمستوى التالي</div>
       </div>
     </div>
-    <div>${ badges.length ? badges.map(k => { const b = BADGE_DEFS.find(x=>x.key===k); return b ? `<span class="badge-chip">${esc(b.label)}</span>` : ""; }).join("") : `<p class="meta">لا توجد أوسمة بعد، أكمل مهامًا لتحصل عليها</p>` }</div>`;
+    <div>${ badges.length ? badges.map(k => { const b = BADGE_DEFS.find(x=>x.key===k); return b ? `<span class="badge-chip">${b.icon}${esc(b.label)}</span>` : ""; }).join("") : `<p class="meta">لا توجد أوسمة بعد، أكمل مهامًا لتحصل عليها</p>` }</div>`;
 }
 
 // ---------- 2) أوسمة الإنجاز ----------
 const BADGE_DEFS = [
-  { key:"first_task", label:"🎯 أول خطوة", test:(u,doneCount)=> doneCount>=1 },
-  { key:"ten_tasks", label:"🚀 10 مهام", test:(u,doneCount)=> doneCount>=10 },
-  { key:"fifty_tasks", label:"🏆 50 مهمة", test:(u,doneCount)=> doneCount>=50 },
-  { key:"streak_7", label:"🔥 أسبوع متواصل", test:(u)=> (u.streak?.count||0) >= 7 },
+  { key:"first_task", label:"أول خطوة", icon:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`, test:(u,doneCount)=> doneCount>=1 },
+  { key:"ten_tasks", label:"10 مهام", icon:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>`, test:(u,doneCount)=> doneCount>=10 },
+  { key:"fifty_tasks", label:"50 مهمة", icon:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3a2 2 0 0 1-2 4M7 5H4a2 2 0 0 0 2 4"/></svg>`, test:(u,doneCount)=> doneCount>=50 },
+  { key:"streak_7", label:"أسبوع متواصل", icon:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>`, test:(u)=> (u.streak?.count||0) >= 7 },
 ];
 async function checkBadges(){
   const doneCount = Object.values(PROGRESS_MAP).filter(p=>p.completed).length;
@@ -2189,7 +2396,10 @@ async function updateStreak(){
 function renderStreakBadge(){
   const el = document.getElementById("streak-badge");
   const c = CURRENT_USER?.streak?.count || 0;
-  if (c > 0){ el.style.display="inline-flex"; el.textContent = `🔥 ${c}`; }
+  if (c > 0){
+    el.style.display="inline-flex";
+    el.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px; margin-left:3px;"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>${c}`;
+  }
   else el.style.display = "none";
 }
 
@@ -2199,8 +2409,8 @@ async function renderLectureFeedback(lectureId){
   const snap = await getDoc(doc(db,"lectureFeedback", `${CURRENT_UID}_${lectureId}`));
   const current = snap.exists() ? snap.data().helpful : null;
   wrap.innerHTML = `
-    <button class="feedback-btn ${current===true?'chosen':''}" data-fb="yes">👍 مفيدة</button>
-    <button class="feedback-btn ${current===false?'chosen':''}" data-fb="no">👎 تحتاج تحسين</button>`;
+    <button class="feedback-btn ${current===true?'chosen':''}" data-fb="yes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>مفيدة</button>
+    <button class="feedback-btn ${current===false?'chosen':''}" data-fb="no"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>تحتاج تحسين</button>`;
   wrap.querySelectorAll("[data-fb]").forEach(btn => {
     btn.onclick = async () => {
       const helpful = btn.dataset.fb === "yes";
@@ -2215,10 +2425,11 @@ async function renderLectureFeedback(lectureId){
 async function loadLectureQA(lectureId){
   const wrap = document.getElementById("lecture-qna");
   wrap.innerHTML = `<div class="spinner"></div>`;
-  const snap = await getDocs(query(collection(db,"lectureQuestions"), where("lectureId","==",lectureId), orderBy("createdAt","desc")));
+  const snap = await getDocs(query(collection(db,"lectureQuestions"), where("lectureId","==",lectureId)));
   if (snap.empty){ wrap.innerHTML = `<p class="meta">لا توجد أسئلة على هذه المحاضرة بعد</p>`; return; }
   wrap.innerHTML = "";
-  snap.forEach(d => {
+  const sortedDocs = snap.docs.slice().sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0));
+  sortedDocs.forEach(d => {
     const q = d.data();
     wrap.innerHTML += `<div class="post glass" style="padding:12px;">
       <div style="font-weight:700; font-size:13px;">${esc(q.name||"مستخدم")}</div>
@@ -2256,8 +2467,9 @@ async function renderDailyChallenge(){
   const slot = document.getElementById("daily-challenge-slot");
   const today = todayStr();
   const attemptSnap = await getDoc(doc(db,"dailyChallengeAttempts", `${CURRENT_UID}_${today}`));
+  const checkIconSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><path d="M20 6L9 17l-5-5"/></svg>`;
   if (attemptSnap.exists()){
-    slot.innerHTML = `<div class="challenge-card glass"><b>✅ التحدي اليومي</b><p style="margin:6px 0 0;">أنجزت تحدي اليوم، عد غدًا لتحدٍ جديد!</p></div>`;
+    slot.innerHTML = `<div class="challenge-card glass"><b>${checkIconSvg}التحدي اليومي</b><p style="margin:6px 0 0;">أنجزت تحدي اليوم، عد غدًا لتحدٍ جديد!</p></div>`;
     return;
   }
   const snap = await getDocs(query(collection(db,"tasks"), where("type","==","mcq"), limit(30)));
@@ -2268,9 +2480,10 @@ async function renderDailyChallenge(){
   try{ questions = JSON.parse(chosenTask.questionsJson || "[]"); }catch(e){}
   if (!questions.length){ slot.innerHTML = ""; return; }
   const q = questions[0];
+  const boltIconSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-2px; margin-left:5px;"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>`;
   slot.innerHTML = `
     <div class="challenge-card glass">
-      <b>⚡ التحدي اليومي</b>
+      <b>${boltIconSvg}التحدي اليومي</b>
       <p style="margin:8px 0; font-weight:700; color:var(--ink);">${esc(q.q)}</p>
       <div id="daily-options"></div>
     </div>`;
@@ -2352,16 +2565,21 @@ async function refreshNotifDot(){
 async function loadNotificationsScreen(){
   const wrap = document.getElementById("notifications-list");
   wrap.innerHTML = `<div class="spinner"></div>`;
-  const snap = await getDocs(query(collection(db,"notifications"), where("uid","==",CURRENT_UID), orderBy("createdAt","desc"), limit(30)));
+  const snap = await getDocs(query(collection(db,"notifications"), where("uid","==",CURRENT_UID)));
   if (snap.empty){ wrap.innerHTML = emptyState("لا توجد إشعارات بعد"); return; }
   wrap.innerHTML = "";
-  const icons = { badge:"🏅", forum_reply:"💬" };
-  snap.forEach(d => {
+  const icons = {
+    badge: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3a2 2 0 0 1-2 4M7 5H4a2 2 0 0 0 2 4"/></svg>`,
+    forum_reply: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5H4l3-3.5a8.38 8.38 0 0 1 6.5-13.5 8.38 8.38 0 0 1 7.5 8.5z"/></svg>`,
+  };
+  const defaultIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`;
+  const sortedNotifs = snap.docs.slice().sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0)).slice(0,30);
+  sortedNotifs.forEach(d => {
     const n = d.data();
     const item = document.createElement("div");
     item.className = "notif-item glass" + (n.read ? "" : " unread");
     item.innerHTML = `
-      <div class="notif-icon">${icons[n.type] || "🔔"}</div>
+      <div class="notif-icon">${icons[n.type] || defaultIcon}</div>
       <div style="flex:1;">
         <p style="margin:0; font-size:13.5px; color:var(--ink);">${esc(n.text)}</p>
         <div class="meta">${fmtDate(n.createdAt)}</div>
@@ -2421,7 +2639,7 @@ document.getElementById("btn-share-progress").onclick = () => {
   const totalDone = Object.values(PROGRESS_MAP).filter(p => p.completed).length;
   const pts = CURRENT_USER.points || 0;
   const badgesCount = (CURRENT_USER.badges||[]).length;
-  const text = `أنجزت ${totalDone} مهمة وحصلت على ${pts} نقطة و${badgesCount} وسام على منصة سَرْمَد! 🚀`;
+  const text = `أنجزت ${totalDone} مهمة وحصلت على ${pts} نقطة و${badgesCount} وسام على منصة سَرْمَد!`;
   if (navigator.share) navigator.share({ text }).catch(()=>{});
   else window.location.href = `mailto:?body=${encodeURIComponent(text)}`;
 };
@@ -2433,6 +2651,101 @@ function updateOfflineBanner(){
 window.addEventListener("online", updateOfflineBanner);
 window.addEventListener("offline", updateOfflineBanner);
 updateOfflineBanner();
+
+// ============================================================
+// الشهادات: تحقق عام + قائمة شهادات الطالب + مشاركة لينكدإن
+// ============================================================
+
+function certVerifyUrl(code){
+  return `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(code)}`;
+}
+
+function linkedInShareUrl(verifyLink){
+  return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyLink)}`;
+}
+
+// صفحة تحقق عامة (بدون تسجيل دخول) — تعمل فور فتح رابط فيه ?verify=الكود
+async function checkCertVerifyRoute(){
+  const code = new URLSearchParams(window.location.search).get("verify");
+  if (!code) return false;
+  IS_CERT_VERIFY_MODE = true;
+
+  document.getElementById("auth-root").style.display = "none";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("tabbar").style.display = "none";
+  document.getElementById("cert-verify-root").style.display = "block";
+
+  const body = document.getElementById("cert-verify-body");
+  try{
+    const snap = await getDocs(query(collection(db,"certificates"), where("verifyCode","==",code)));
+    if (snap.empty){
+      body.innerHTML = `<div class="glass" style="padding:24px; text-align:center;">
+        <p style="font-weight:700; color:var(--red);">هذا الرابط غير صالح</p>
+        <p class="meta">لا توجد شهادة بهذا الكود على منصة سَرْمَد</p>
+      </div>`;
+      return true;
+    }
+    const cert = snap.docs[0].data();
+    const link = certVerifyUrl(code);
+    body.innerHTML = `
+      <div class="cert-card glass">
+        <span class="cert-verified-badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><path d="M20 6L9 17l-5-5"/></svg>شهادة موثّقة من سَرْمَد</span>
+        <img class="allow-context" src="${esc(cert.imageUrl)}">
+        <h2>${esc(cert.studentName)}</h2>
+        <p>أتمّ بنجاح كورس "${esc(cert.courseTitle)}"</p>
+        <p class="meta" style="margin-bottom:16px;">تاريخ الإصدار: ${fmtDate(cert.issuedAt)}</p>
+        <button class="linkedin-btn" id="btn-share-linkedin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          مشاركة على LinkedIn
+        </button>
+      </div>
+      <p class="rights-footer">© جميع الحقوق محفوظة — منصة سَرْمَد</p>
+    `;
+    document.getElementById("btn-share-linkedin").onclick = () => {
+      window.open(linkedInShareUrl(link), "_blank", "noopener,width=600,height=600");
+    };
+  }catch(err){
+    body.innerHTML = `<p class="meta" style="text-align:center;">تعذّر التحقق الآن، حاول مرة أخرى لاحقًا</p>`;
+  }
+  return true;
+}
+
+// شهادات الطالب في صفحة حسابه
+async function loadMyCertificates(){
+  const wrap = document.getElementById("my-certificates");
+  wrap.innerHTML = `<div class="spinner"></div>`;
+  try{
+    const snap = await getDocs(query(collection(db,"certificates"), where("uid","==",CURRENT_UID)));
+    if (snap.empty){ wrap.innerHTML = `<p class="meta">لا توجد شهادات بعد</p>`; return; }
+    wrap.innerHTML = "";
+    snap.forEach(d => {
+      const cert = d.data();
+      const link = certVerifyUrl(cert.verifyCode);
+      const card = document.createElement("div");
+      card.className = "cert-card glass";
+      card.innerHTML = `
+        <img class="allow-context" src="${esc(cert.imageUrl)}">
+        <h2 style="font-size:16px;">${esc(cert.courseTitle)}</h2>
+        <p class="meta" style="margin-bottom:14px;">تاريخ الإصدار: ${fmtDate(cert.issuedAt)}</p>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" style="flex:1;" data-copy-link="${esc(link)}">نسخ رابط التحقق</button>
+          <button class="linkedin-btn" style="flex:1;" data-share-link="${esc(link)}">مشاركة LinkedIn</button>
+        </div>`;
+      wrap.appendChild(card);
+    });
+    wrap.querySelectorAll("[data-copy-link]").forEach(btn => {
+      btn.onclick = () => {
+        navigator.clipboard?.writeText(btn.dataset.copyLink).then(() => toast("تم نسخ الرابط"))
+          .catch(() => toast(btn.dataset.copyLink));
+      };
+    });
+    wrap.querySelectorAll("[data-share-link]").forEach(btn => {
+      btn.onclick = () => window.open(linkedInShareUrl(btn.dataset.shareLink), "_blank", "noopener,width=600,height=600");
+    });
+  }catch(err){ wrap.innerHTML = `<p class="meta">تعذّر تحميل الشهادات</p>`; }
+}
+
+checkCertVerifyRoute();
 
 </script>
 </body>

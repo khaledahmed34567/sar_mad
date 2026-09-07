@@ -440,24 +440,17 @@ img{ -webkit-user-drag:none; user-drag:none; }
     <p class="auth-switch"><b id="go-login-2">العودة لتسجيل الدخول</b></p>
   </section>
 
-  <section class="screen" id="scr-2fa-wait">
+  <section class="screen" id="scr-verify-email">
     <div class="auth-hero">
       <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>التحقق بخطوتين</h1>
-      <p>سنرسل كود تحقق (OTP) عبر رسالة نصية إلى رقمك <b id="twofa-phone-display"></b></p>
+      <h1>فعّل حسابك</h1>
+      <p>أرسلنا رسالة تفعيل إلى بريدك <b id="verify-email-display"></b> — افتح بريدك واضغط رابط التفعيل، ثم عد هنا واضغط "تحققت من التفعيل"</p>
     </div>
     <div class="glass" style="padding:22px;">
-      <div id="twofa-step-send">
-        <button class="btn btn-primary btn-block" id="btn-send-otp">إرسال الكود</button>
-      </div>
-      <div id="twofa-step-code" style="display:none;">
-        <div class="field"><label>أدخل الكود المكوّن من 6 أرقام</label><input type="text" inputmode="numeric" maxlength="6" id="otp-code-input" style="text-align:center; font-size:22px; letter-spacing:8px;"></div>
-        <button class="btn btn-primary btn-block" id="btn-confirm-otp">تأكيد</button>
-        <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-resend-2fa">إعادة إرسال الكود</button>
-      </div>
-      <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-cancel-2fa">تسجيل الخروج</button>
+      <button class="btn btn-primary btn-block" id="btn-check-verified">تحققت من التفعيل</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:10px;" id="btn-resend-verify">إعادة إرسال رسالة التفعيل</button>
+      <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-cancel-verify">تسجيل الخروج</button>
     </div>
-    <div id="recaptcha-container"></div>
   </section>
 
 </div>
@@ -718,29 +711,26 @@ img{ -webkit-user-drag:none; user-drag:none; }
       <button type="submit" class="btn btn-secondary btn-block">تغيير كلمة المرور</button>
     </form>
     <div class="glass" style="padding:18px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div>
-          <div style="font-weight:700; font-size:14px;">التحقق بخطوتين (OTP)</div>
-          <div class="meta">كود يصلك برسالة نصية عند كل تسجيل دخول من جهاز جديد</div>
+          <div style="font-weight:700; font-size:14px;">تفعيل البريد الإلكتروني</div>
+          <div class="meta" id="email-verified-status">—</div>
         </div>
-        <label style="flex-shrink:0;">
-          <input type="checkbox" id="toggle-2fa" style="width:22px; height:22px;">
-        </label>
+        <button class="btn btn-secondary" id="btn-resend-verify-settings" style="flex-shrink:0; padding:9px 14px; font-size:12.5px; display:none;">إعادة الإرسال</button>
       </div>
-      <div id="twofa-setup-flow" style="display:none;">
-        <div class="field"><label>رقم الهاتف (بصيغة دولية، مثال: 20xxxxxxxxx)</label><input type="tel" id="twofa-setup-phone" placeholder="20xxxxxxxxx"></div>
-        <button type="button" class="btn btn-secondary btn-block" id="btn-setup-send-otp">إرسال كود التفعيل</button>
-        <div id="twofa-setup-code-wrap" style="display:none; margin-top:10px;">
-          <div class="field"><label>أدخل الكود</label><input type="text" inputmode="numeric" maxlength="6" id="twofa-setup-code" style="text-align:center; font-size:20px; letter-spacing:6px;"></div>
-          <button type="button" class="btn btn-primary btn-block" id="btn-setup-confirm-otp">تفعيل التحقق بخطوتين</button>
-        </div>
-      </div>
-      <div id="recaptcha-container-settings"></div>
     </div>
 
     <button class="btn btn-secondary btn-block" id="btn-contact">تواصل معنا</button>
     <button class="btn btn-ghost btn-block" style="margin-top:10px;" id="btn-logout">تسجيل الخروج</button>
     <button class="btn btn-ghost btn-block" style="margin-top:10px; color:var(--red);" id="btn-delete-account">حذف الحساب نهائيًا</button>
+  </section>
+
+  <!-- صفحة كاملة للفيديو والاختبار (بدل النافذة المنبثقة) -->
+  <section class="screen" id="scr-task-fullpage" style="padding-bottom:40px;">
+    <button class="icon-btn back-btn" data-back="scr-lecture" style="margin-bottom:14px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div id="task-fullpage-body"></div>
   </section>
 
 </div>
@@ -788,7 +778,7 @@ import {
   getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
   signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
   sendPasswordResetEmail, sendEmailVerification, updateProfile, updatePassword, signOut, signInAnonymously,
-  verifyBeforeUpdateEmail, RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber, deleteUser
+  verifyBeforeUpdateEmail, deleteUser
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc,
@@ -1030,9 +1020,9 @@ document.getElementById("form-signup").addEventListener("submit", async (e) => {
       }
     }
     await setDoc(doc(db,"users",cred.user.uid), userData);
-    sendEmailVerification(cred.user).catch(() => {}); // ترسل تلقائيًا من فايربيز، لا حاجة لانتظارها
-    toast("تم إنشاء الحساب بنجاح، وصلك رابط تفعيل بالبريد");
-    await enterApp(cred.user.uid, userData);
+    await sendEmailVerification(cred.user);
+    toast("تم إنشاء الحساب، تحقق من بريدك لتفعيله");
+    showEmailVerifyGate(cred.user, userData);
   }catch(err){
     toast(mapAuthError(err));
   } finally { submitBtn.disabled = false; }
@@ -1167,9 +1157,9 @@ onAuthStateChanged(auth, async (user) => {
         userData = { ...userData, email: user.email };
       }
 
-      // بوابة التحقق بخطوتين (لو مفعّلة على هذا الحساب)
-      if (userData.twoFactorEnabled && localStorage.getItem(twoFAFlagKey(user.uid)) !== twoFAToday()){
-        start2FAChallenge(userData.phone, user.uid, userData);
+      // بوابة تفعيل البريد الإلكتروني (لحسابات البريد وكلمة المرور فقط؛ حسابات جوجل مُفعّلة تلقائيًا)
+      if (!user.emailVerified){
+        showEmailVerifyGate(user, userData);
         return;
       }
 
@@ -1189,60 +1179,39 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById("btn-logout").onclick = () => signOut(auth);
 
-// ================= التحقق بخطوتين (كود OTP عبر رسالة نصية من فايربيز) =================
-function twoFAFlagKey(uid){ return `sarmad_2fa_done_${uid}`; }
-function twoFAToday(){ return new Date().toISOString().slice(0,10); }
+// ================= بوابة تفعيل البريد الإلكتروني عند التسجيل =================
+let PENDING_VERIFY_USER = null;
+let PENDING_VERIFY_USERDATA = null;
 
-let twoFAConfirmationResult = null;
-let twoFAPendingUid = null;
-let twoFAPendingUserData = null;
-
-function toE164(phone){
-  const digits = String(phone||"").replace(/\D/g,"");
-  return digits.startsWith("+") ? digits : `+${digits}`;
-}
-
-async function start2FAChallenge(phone, uid, userData){
+function showEmailVerifyGate(user, userData){
+  PENDING_VERIFY_USER = user;
+  PENDING_VERIFY_USERDATA = userData;
   document.getElementById("app").style.display = "none";
   document.getElementById("tabbar").style.display = "none";
   document.getElementById("auth-root").style.display = "block";
-  showScreen("scr-2fa-wait");
-  document.getElementById("twofa-phone-display").textContent = phone || "(لا يوجد رقم مسجّل)";
-  document.getElementById("twofa-step-send").style.display = "block";
-  document.getElementById("twofa-step-code").style.display = "none";
-  twoFAPendingUid = uid; twoFAPendingUserData = userData;
+  showScreen("scr-verify-email");
+  document.getElementById("verify-email-display").textContent = user.email || "";
 }
 
-async function sendLoginOtp(){
-  const phone = twoFAPendingUserData?.phone;
-  if (!phone){ toast("لا يوجد رقم هاتف مسجّل على هذا الحساب"); return; }
+document.getElementById("btn-check-verified").onclick = async () => {
   try{
-    const verifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
-    twoFAConfirmationResult = await signInWithPhoneNumber(auth, toE164(phone), verifier);
-    document.getElementById("twofa-step-send").style.display = "none";
-    document.getElementById("twofa-step-code").style.display = "block";
-    toast("تم إرسال الكود");
-  }catch(err){
-    toast("تعذّر إرسال الكود (" + (err.code||"خطأ") + ") — تأكد أن Phone مفعّل في Firebase");
-  }
-}
-document.getElementById("btn-send-otp").onclick = sendLoginOtp;
-document.getElementById("btn-resend-2fa").onclick = sendLoginOtp;
-
-document.getElementById("btn-confirm-otp").onclick = async () => {
-  const code = document.getElementById("otp-code-input").value.trim();
-  if (!code || !twoFAConfirmationResult) return;
-  try{
-    const result = await twoFAConfirmationResult.confirm(code);
-    localStorage.setItem(twoFAFlagKey(result.user.uid), twoFAToday());
-    updateDoc(doc(db,"users",result.user.uid), { lastLoginAt: serverTimestamp() }).catch(()=>{});
-    toast("تم التحقق بنجاح");
-    await enterApp(result.user.uid, twoFAPendingUserData);
-  }catch(err){
-    toast("الكود غير صحيح أو منتهي الصلاحية");
-  }
+    await PENDING_VERIFY_USER.reload();
+    if (auth.currentUser.emailVerified){
+      toast("تم تفعيل الحساب بنجاح");
+      updateDoc(doc(db,"users",auth.currentUser.uid), { lastLoginAt: serverTimestamp() }).catch(()=>{});
+      await enterApp(auth.currentUser.uid, PENDING_VERIFY_USERDATA);
+    } else {
+      toast("لسه محتاج تضغط رابط التفعيل في بريدك أولًا");
+    }
+  }catch(err){ toast("تعذّر التحقق، حاول مرة أخرى"); }
 };
-document.getElementById("btn-cancel-2fa").onclick = () => signOut(auth);
+document.getElementById("btn-resend-verify").onclick = async () => {
+  try{
+    await sendEmailVerification(PENDING_VERIFY_USER);
+    toast("تم إعادة إرسال رسالة التفعيل");
+  }catch(err){ toast("تعذّر الإرسال، حاول بعد قليل"); }
+};
+document.getElementById("btn-cancel-verify").onclick = () => signOut(auth);
 
 document.getElementById("btn-contact").onclick = () => {
   window.location.href = `mailto:${APP.contactEmail}`;
@@ -1518,7 +1487,8 @@ async function openLecture(lec){
   ACTIVE_LECTURE = lec;
   document.getElementById("lecture-title").textContent = lec.title;
   document.getElementById("lecture-desc").textContent = lec.description || "";
-  document.getElementById("lecture-duration").textContent = `⏱ ${lec.duration || 0} دقيقة`;
+  const clockIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:4px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+  document.getElementById("lecture-duration").innerHTML = `${clockIconSvg}${fmtDuration((lec.duration || 0) * 60)}`;
   showScreen("scr-lecture");
 
   const lastLecture = { lectureId: lec.id, courseId: ACTIVE_COURSE_ID, lectureTitle: lec.title, courseTitle: ACTIVE_COURSE?.title || "" };
@@ -1547,7 +1517,7 @@ async function openLecture(lec){
       <div class="task-icon">${taskIcon(t.type)}</div>
       <div class="task-body">
         <div class="t">${idx+1}. ${esc(t.title || taskTypeLabel(t.type))}</div>
-        <div class="s">${t.description ? esc(t.description) + " — " : ""}${t.timeLimitSeconds ? `⏳ ${fmtDuration(t.timeLimitSeconds)}` : ""}</div>
+        <div class="s">${t.description ? esc(t.description) + " — " : ""}${t.timeLimitSeconds ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-left:3px;"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.41L12 12l-4.41 4.42a2 2 0 0 0-.59 1.41V22M17 2v4.17a2 2 0 0 1-.59 1.41L12 12 7.59 7.58A2 2 0 0 1 7 6.17V2"/></svg>${fmtDuration(t.timeLimitSeconds)}` : ""}</div>
       </div>
       ${done ? `<span class="badge badge-done">تم</span>` : (!prevDone ? `<span class="badge badge-lock">مقفل</span>` : "")}
     `;
@@ -1580,6 +1550,34 @@ function openTaskSheet(html){
 }
 function closeTaskSheet(){
   document.getElementById("overlay-task").classList.remove("active");
+}
+function openTaskFullPage(html){
+  document.getElementById("task-fullpage-body").innerHTML = html;
+  showScreen("scr-task-fullpage");
+}
+
+// تحميل حقيقي للملف على الجهاز (سمة download في وسم <a> يتم تجاهلها من المتصفحات لو الرابط من مصدر خارجي)
+async function forceDownload(url, btnEl, filename){
+  const originalText = btnEl ? btnEl.textContent : "";
+  if (btnEl){ btnEl.disabled = true; btnEl.textContent = "جاري التحميل..."; }
+  try{
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("fetch failed");
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename || "ملف";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 8000);
+  }catch(err){
+    toast("تعذّر التحميل المباشر، سيتم فتح الملف في نافذة جديدة");
+    window.open(url, "_blank", "noopener");
+  } finally {
+    if (btnEl){ btnEl.disabled = false; btnEl.textContent = originalText; }
+  }
 }
 
 async function markTaskComplete(taskId, extra={}){
@@ -1619,7 +1617,7 @@ function gateCompleteButton(btnId, timeLimitSeconds, noteElId){
   if (!timeLimitSeconds || timeLimitSeconds <= 0) return; // بدون وقت محدد، الزر مفعّل فورًا
   btn.disabled = true;
   let left = timeLimitSeconds;
-  const update = () => { if (noteEl) noteEl.textContent = `⏳ الزر سيُفعّل بعد ${fmtDuration(left)}`; };
+  const update = () => { if (noteEl) noteEl.textContent = `الزر سيُفعّل بعد ${fmtDuration(left)}`; };
   update();
   const interval = setInterval(() => {
     left--;
@@ -1676,22 +1674,26 @@ function openJsonTask(t, closeBtn){
 
 // ---- PDF ----
 function openPdfTask(t, closeBtn){
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(t.url)}&embedded=true`;
   openTaskSheet(`
     <div style="position:relative;">
       ${closeBtn}
       ${taskHeaderHtml(t, "ملف PDF")}
       <span class="ai-trap" aria-hidden="false">${esc(AI_TRAP_TEXT)}</span>
-      <iframe class="pdf-frame allow-context" src="${esc(t.url)}"></iframe>
+      <iframe class="pdf-frame allow-context allow-tap" src="${esc(viewerUrl)}"></iframe>
+      <p class="video-note">لو الملف مايفتحش هنا، جرّب زر "فتح في نافذة جديدة" تحت</p>
       ${t.timeLimitSeconds ? `<p class="video-note" id="pdf-timer-note"></p>` : ""}
       <div style="display:flex; gap:10px; margin-top:14px;">
-        <a class="btn btn-secondary" style="flex:1;" href="${esc(t.url)}" download target="_blank" rel="noopener">تحميل الملف</a>
-        <button class="btn btn-primary" style="flex:1;" id="btn-complete-pdf">إتمام المهمة</button>
+        <a class="btn btn-secondary" style="flex:1;" href="${esc(t.url)}" target="_blank" rel="noopener">فتح في نافذة جديدة</a>
+        <button type="button" class="btn btn-secondary" style="flex:1;" id="btn-download-pdf">تحميل الملف</button>
       </div>
+      <button class="btn btn-primary btn-block" style="margin-top:10px;" id="btn-complete-pdf">إتمام المهمة</button>
     </div>`);
   gateCompleteButton("btn-complete-pdf", t.timeLimitSeconds, "pdf-timer-note");
+  document.getElementById("btn-download-pdf").onclick = (e) => forceDownload(t.url, e.target, (t.title||"ملف") + ".pdf");
   document.getElementById("btn-complete-pdf").onclick = async () => {
     await markTaskComplete(t.id);
-    closeTaskSheet(); toast("تم إتمام المهمة ✓");
+    closeTaskSheet(); toast("تم إتمام المهمة");
     openLecture(ACTIVE_LECTURE);
   };
 }
@@ -1702,11 +1704,10 @@ function openVideoTask(t, closeBtn){
   const savedTime = PROGRESS_MAP[t.id]?.watchSeconds || 0;
   const playerHtml = isYoutube
     ? `<iframe class="allow-context" src="${esc(toYoutubeEmbed(t.url))}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
-    : `<video id="task-video" class="allow-context" controls controlsList="nodownload noremoteplayback" disablePictureInPicture src="${esc(t.url)}"></video>`;
+    : `<video id="task-video" class="allow-context allow-tap" controls controlsList="nodownload noremoteplayback" disablePictureInPicture src="${esc(t.url)}"></video>`;
 
-  openTaskSheet(`
-    <div style="position:relative;">
-      ${closeBtn}
+  openTaskFullPage(`
+    <div>
       ${taskHeaderHtml(t, "فيديو المحاضرة")}
       <div class="video-wrap">${playerHtml}</div>
       <p class="video-note" id="video-progress-note">${isYoutube ? "شاهد الفيديو كاملاً لتفعيل زر الإتمام" : "لا يمكن تخطي الفيديو للأمام — شاهده كاملاً لتفعيل زر الإتمام"}</p>
@@ -1757,7 +1758,7 @@ function openVideoTask(t, closeBtn){
 
   completeBtn.onclick = async () => {
     await markTaskComplete(t.id, { watchSeconds: t.estimatedSeconds || 0 });
-    closeTaskSheet(); toast("تم إتمام المهمة ✓");
+    toast("تم إتمام المهمة");
     openLecture(ACTIVE_LECTURE);
   };
 }
@@ -1788,9 +1789,8 @@ function openMcqTask(t, closeBtn){
           <div>${esc(opt)}</div>
         </div>`).join("");
     }
-    openTaskSheet(`
-      <div style="position:relative;">
-        ${closeBtn}
+    openTaskFullPage(`
+      <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
           <h2 style="margin:0;">سؤال ${current+1} / ${questions.length}</h2>
           ${timeLeft ? `<span class="timer-chip" id="mcq-timer">${fmtDuration(timeLeft)}</span>` : ""}
@@ -1868,16 +1868,15 @@ function openMcqTask(t, closeBtn){
     });
     const pct = gradable ? Math.round((correct/gradable)*100) : 0;
     await markTaskComplete(t.id, { score: pct, essayAnswers });
-    openTaskSheet(`
-      <div style="position:relative; text-align:center; padding-top:10px;">
-        ${closeBtn}
+    openTaskFullPage(`
+      <div style="text-align:center; padding-top:10px;">
         <div style="width:70px;height:70px;border-radius:50%;background:var(--red-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px; font-weight:800; color:var(--red);">${pct}%</div>
         <h2>نتيجتك: ${correct} من ${gradable}${essayAnswers.length ? ` (+${essayAnswers.length} سؤال مقالي بانتظار المراجعة)` : ""}</h2>
         <p>تم حفظ نتيجتك وإتمام المهمة</p>
         <button class="btn btn-primary btn-block" id="btn-mcq-done">متابعة</button>
       </div>`);
     document.getElementById("btn-mcq-done").onclick = () => {
-      closeTaskSheet(); openLecture(ACTIVE_LECTURE);
+      openLecture(ACTIVE_LECTURE);
     };
   }
 
@@ -2068,7 +2067,9 @@ async function loadProfile(){
   document.getElementById("edit-username").value = CURRENT_USER.username || "";
   document.getElementById("edit-phone").value = CURRENT_USER.phone || "";
   document.getElementById("current-email-display").value = CURRENT_USER.email || "";
-  document.getElementById("toggle-2fa").checked = !!CURRENT_USER.twoFactorEnabled;
+  const verified = auth.currentUser?.emailVerified;
+  document.getElementById("email-verified-status").textContent = verified ? "مفعّل" : "غير مفعّل";
+  document.getElementById("btn-resend-verify-settings").style.display = verified ? "none" : "inline-flex";
   document.getElementById("last-login-line").textContent = CURRENT_USER.lastLoginAt
     ? `آخر تسجيل دخول: ${fmtDate(CURRENT_USER.lastLoginAt)}` : "";
   renderPointsBadges();
@@ -2158,52 +2159,12 @@ document.getElementById("form-change-email").addEventListener("submit", async (e
   } finally { btn.disabled = false; }
 });
 
-// ================= تفعيل/إيقاف التحقق بخطوتين =================
-document.getElementById("toggle-2fa").addEventListener("change", async (e) => {
-  const enabled = e.target.checked;
-  if (!enabled){
-    await updateDoc(doc(db,"users",CURRENT_UID), { twoFactorEnabled: false });
-    CURRENT_USER.twoFactorEnabled = false;
-    document.getElementById("twofa-setup-flow").style.display = "none";
-    toast("تم إيقاف التحقق بخطوتين");
-    return;
-  }
-  document.getElementById("twofa-setup-flow").style.display = "block";
-  document.getElementById("twofa-setup-phone").value = CURRENT_USER.phone || "";
-  document.getElementById("twofa-setup-code-wrap").style.display = "none";
-});
-
-let settingsOtpConfirmation = null;
-document.getElementById("btn-setup-send-otp").onclick = async () => {
-  const phone = document.getElementById("twofa-setup-phone").value.trim();
-  if (!phone){ toast("أدخل رقم الهاتف"); return; }
+// ================= إعادة إرسال رسالة تفعيل البريد من إعدادات الحساب =================
+document.getElementById("btn-resend-verify-settings").onclick = async () => {
   try{
-    const verifier = new RecaptchaVerifier(auth, "recaptcha-container-settings", { size: "invisible" });
-    settingsOtpConfirmation = await linkWithPhoneNumber(auth.currentUser, toE164(phone), verifier);
-    document.getElementById("twofa-setup-code-wrap").style.display = "block";
-    toast("تم إرسال كود التفعيل");
-  }catch(err){
-    if (err.code === "auth/provider-already-linked" || err.code === "auth/credential-already-in-use"){
-      toast("هذا الرقم مرتبط بالفعل بحساب على هذه المنصة");
-    } else {
-      toast("تعذّر الإرسال (" + (err.code||"خطأ") + ") — تأكد أن Phone مفعّل في Firebase");
-    }
-  }
-};
-document.getElementById("btn-setup-confirm-otp").onclick = async () => {
-  const code = document.getElementById("twofa-setup-code").value.trim();
-  if (!code || !settingsOtpConfirmation) return;
-  try{
-    await settingsOtpConfirmation.confirm(code);
-    const phone = document.getElementById("twofa-setup-phone").value.trim();
-    await updateDoc(doc(db,"users",CURRENT_UID), { twoFactorEnabled: true, phone });
-    CURRENT_USER.twoFactorEnabled = true; CURRENT_USER.phone = phone;
-    localStorage.setItem(twoFAFlagKey(CURRENT_UID), twoFAToday()); // هذا الجهاز تحقق بالفعل الآن
-    document.getElementById("twofa-setup-flow").style.display = "none";
-    toast("تم تفعيل التحقق بخطوتين بنجاح");
-  }catch(err){
-    toast("الكود غير صحيح، حاول مرة أخرى");
-  }
+    await sendEmailVerification(auth.currentUser);
+    toast("تم إرسال رسالة التفعيل، تحقق من بريدك");
+  }catch(err){ toast("تعذّر الإرسال، حاول بعد قليل"); }
 };
 
 // ================= حذف الحساب نهائيًا =================

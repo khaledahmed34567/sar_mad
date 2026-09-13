@@ -1,445 +1,244 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>سَرْمَد</title>
-<link rel="manifest" href="data:application/manifest+json;base64,ewogICJzaG9ydF9uYW1lIjogItiz2LHZhdivIiwKICAibmFtZSI6ICLYs9ix2YXYryIsCiAgImRlc2NyaXB0aW9uIjogItmF2YbYtdipINmD2YjYsdiz2KfYqiDZh9mG2K/Ys9ipINin2YTYqNix2YXYrNmK2KfYqiDZiNin2YTYo9mF2YYg2KfZhNiz2YrYqNix2KfZhtmKIiwKICAiaWNvbnMiOiBbCiAgICB7ICJzcmMiOiAiaHR0cHM6Ly9pLmliYi5jby9DeUJoZ0owL2ljb24ucG5nIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkiIH0sCiAgICB7ICJzcmMiOiAiaHR0cHM6Ly9pLmliYi5jby9DeUJoZ0owL2ljb24ucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkiIH0sCiAgICB7ICJzcmMiOiAiaHR0cHM6Ly9pLmliYi5jby9DeUJoZ0owL2ljb24ucG5nIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJtYXNrYWJsZSIgfQogIF0sCiAgInN0YXJ0X3VybCI6ICIuL2luZGV4Lmh0bWwiLAogICJzY29wZSI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjZGNkY4IiwKICAidGhlbWVfY29sb3IiOiAiI0Y2RjZGOCIsCiAgImRpciI6ICJydGwiLAogICJsYW5nIjogImFyIgp9Cg==">
-<link rel="apple-touch-icon" href="https://i.ibb.co/CyBhgJ0/icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F6F6F8">
-<meta property="og:title" content="شهادة إتمام من منصة سَرْمَد">
-<meta property="og:description" content="تحقق من صحة الشهادة الصادرة من منصة سَرْمَد لهندسة البرمجيات والأمن السيبراني">
-<meta property="og:image" content="https://i.ibb.co/PZsJ4ptx/logo.png">
-<meta property="og:type" content="website">
-<link rel="stylesheet" href="./styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>سرمد</title>
+<meta name="description" content="منصة سرمد لكورسات هندسة البرمجيات والأمن السيبراني" />
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="سرمد" />
+<link rel="apple-touch-icon" href="https://i.ibb.co/F16g2s7/Picsart-26-08-21-02-55-45-367.jpg" />
+<link rel="icon" href="https://i.ibb.co/F16g2s7/Picsart-26-08-21-02-55-45-367.jpg" />
+
+<link rel="stylesheet" href="./style.css" />
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AW_M1acPABnrPp2AJklYALUDZ1OUA2NS6CPGp3D3ZB9fVIfmfD87le9WZmHF3fOCqINDO3RAtQGWLteZ&currency=USD"></script>
+<!-- jsPDF: لتحويل الشهادة إلى ملف PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="protected">
-<div class="offline-banner" id="offline-banner">لا يوجد اتصال بالإنترنت حاليًا</div>
+<body>
 
-<div id="toast-host"></div>
+<div id="app">
 
-<!-- ============ صفحة التحقق من الشهادة (عامة، بدون تسجيل دخول) ============ -->
-<div id="cert-verify-root" style="display:none; min-height:100vh; padding: 30px 18px;">
-  <div style="max-width:480px; margin:0 auto;">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
+  <!-- ============ Topbar ============ -->
+  <header class="topbar" id="topbar">
+    <button class="icon-btn" id="btnMenu" aria-label="القائمة">
+      <svg viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill="none" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <img class="logo-mark protected" src="https://i.ibb.co/Z6RvKsNd/Picsart-26-08-21-02-56-13-099.png" alt="سرمد" />
+    <button class="icon-btn" id="btnAccount" aria-label="الحساب">
+      <svg viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill="none" stroke-linecap="round"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 20c1.8-3.2 4.8-5 8-5s6.2 1.8 8 5"/></svg>
+    </button>
+  </header>
+
+  <!-- ============ AUTH ============ -->
+  <section class="screen" id="screen-auth">
+    <div style="text-align:center; margin:26px 0 20px;">
+      <img src="https://i.ibb.co/Z6RvKsNd/Picsart-26-08-21-02-56-13-099.png" class="protected" style="height:64px;margin:0 auto;" alt="سرمد" />
     </div>
-    <div id="cert-verify-body"><div class="spinner"></div></div>
-  </div>
-</div>
 
-<!-- ============ شاشات المصادقة ============ -->
-<div id="auth-root">
-
-  <section class="screen active" id="scr-login">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>تسجيل الدخول</h1>
-      <p>أكمل مسارك التعليمي من حيث توقفت</p>
+    <div class="auth-tabs">
+      <button class="active" data-authtab="login">تسجيل الدخول</button>
+      <button data-authtab="signup">حساب جديد</button>
     </div>
-    <form class="glass" style="padding:22px;" id="form-login">
+
+    <!-- تسجيل الدخول -->
+    <form id="formLogin" class="auth-pane">
       <div class="field">
         <label>البريد الإلكتروني / اسم المستخدم / رقم الهاتف</label>
-        <input type="text" id="login-id" required placeholder="example@mail.com" autocomplete="username">
+        <input type="text" id="loginIdentifier" required autocomplete="username" />
       </div>
       <div class="field">
         <label>كلمة المرور</label>
-        <input type="password" id="login-pass" required placeholder="••••••••" autocomplete="current-password">
+        <input type="password" id="loginPassword" required autocomplete="current-password" />
       </div>
-      <div style="text-align:left; margin-bottom:16px;">
-        <span class="meta" style="cursor:pointer; color:var(--red); font-weight:600;" id="btn-forgot">نسيت كلمة المرور؟</span>
-      </div>
-      <button type="submit" class="btn btn-primary btn-block">دخول</button>
+      <button type="button" class="btn-sm btn-ghost" id="btnForgot" style="margin-bottom:14px;">نسيت كلمة المرور؟</button>
+      <button type="submit" class="btn btn-primary">دخول</button>
       <div class="divider-or">أو</div>
-      <button type="button" class="google-btn" id="btn-google-login">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.61z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
-        الدخول بحساب Google
+      <button type="button" class="google-btn" id="btnGoogleLogin">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.5-.2-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3c-7.6 0-14.1 4.3-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 36.2 27 37 24 37c-5.3 0-9.8-3.4-11.4-8.1l-6.6 5.1C9.8 40.5 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.7-2.8 5-5.3 6.5l6.6 5.4C39.8 37.6 43 31.4 43 24c0-1.5-.2-2.7-.4-3.5z"/></svg>
+        الدخول عبر جوجل
       </button>
     </form>
-    <p class="auth-switch">ليس لديك حساب؟ <b id="go-signup">إنشاء حساب</b></p>
-  </section>
 
-  <section class="screen" id="scr-signup">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>إنشاء حساب</h1>
-      <p>ابدأ رحلتك في هندسة البرمجيات والأمن السيبراني</p>
-    </div>
-    <form class="glass" style="padding:22px;" id="form-signup">
-      <div class="field"><label>الاسم الأول</label><input type="text" id="su-fname" required></div>
-      <div class="field"><label>الاسم الثاني</label><input type="text" id="su-mname" required></div>
-      <div class="field"><label>الاسم الثالث</label><input type="text" id="su-lname" required></div>
-      <div class="field"><label>البريد الإلكتروني</label><input type="email" id="su-email" required></div>
+    <!-- حساب جديد -->
+    <form id="formSignup" class="auth-pane" style="display:none;">
+      <div class="field"><label>الاسم الأول</label><input type="text" id="suFirst" required /></div>
+      <div class="field"><label>الاسم الثاني</label><input type="text" id="suMiddle" required /></div>
+      <div class="field"><label>الاسم الثالث</label><input type="text" id="suLast" required /></div>
+      <div class="field"><label>البريد الإلكتروني</label><input type="email" id="suEmail" required /></div>
       <div class="field">
         <label>اسم المستخدم (إنجليزي، حروف صغيرة، بدون مسافات)</label>
-        <input type="text" id="su-username" required pattern="[a-z0-9_.]+" placeholder="khaled_dev">
-        <div class="err">حروف إنجليزية صغيرة وأرقام فقط، بدون مسافات</div>
+        <input type="text" id="suUsername" pattern="[a-z0-9_]+" required />
+        <div class="form-note">مسموح بالحروف الإنجليزية الصغيرة والأرقام و( _ ) فقط.</div>
       </div>
-      <div class="field"><label>رقم الهاتف</label><input type="tel" id="su-phone" required placeholder="01xxxxxxxxx"></div>
-      <div class="field"><label>كلمة المرور</label><input type="password" id="su-pass" required minlength="6"></div>
-      <div class="field"><label>تأكيد كلمة المرور</label><input type="password" id="su-pass2" required minlength="6">
-        <div class="err">كلمتا المرور غير متطابقتين</div>
-      </div>
-      <div class="field"><label>كود إحالة صديق (اختياري)</label><input type="text" id="su-referral" placeholder="مثال: khaled_dev"></div>
-      <button type="submit" class="btn btn-primary btn-block">إنشاء الحساب</button>
+      <div class="field"><label>رقم الهاتف</label><input type="tel" id="suPhone" required /></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" id="suPassword" required minlength="6" /></div>
+      <div class="field"><label>تأكيد كلمة المرور</label><input type="password" id="suPassword2" required minlength="6" /></div>
+      <div class="field-error" id="signupError"></div>
+      <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
       <div class="divider-or">أو</div>
-      <button type="button" class="google-btn" id="btn-google-signup">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.61z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
-        التسجيل بحساب Google
+      <button type="button" class="google-btn" id="btnGoogleSignup">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.5-.2-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3c-7.6 0-14.1 4.3-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 36.2 27 37 24 37c-5.3 0-9.8-3.4-11.4-8.1l-6.6 5.1C9.8 40.5 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.7-2.8 5-5.3 6.5l6.6 5.4C39.8 37.6 43 31.4 43 24c0-1.5-.2-2.7-.4-3.5z"/></svg>
+        إنشاء حساب عبر جوجل
       </button>
+      <div class="form-note" id="googleCompleteNote" style="margin-top:8px;">عند التسجيل بجوجل سيُطلب منك استكمال باقي البيانات (بدون البريد الإلكتروني).</div>
     </form>
-    <p class="auth-switch">لديك حساب بالفعل؟ <b id="go-login">تسجيل الدخول</b></p>
   </section>
 
-  <section class="screen" id="scr-forgot">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>استعادة كلمة المرور</h1>
-      <p>سيصلك رابط إعادة التعيين عبر البريد الإلكتروني — تحقق من مجلد الرسائل غير المهمة أيضًا</p>
+  <!-- ============ التحقق من الشهادة (شاشة عامة بلا تسجيل دخول) ============ -->
+  <section class="screen" id="screen-verify">
+    <div style="text-align:center; margin:26px 0 18px;">
+      <img src="https://i.ibb.co/Z6RvKsNd/Picsart-26-08-21-02-56-13-099.png" class="protected" style="height:52px;margin:0 auto;" alt="سرمد" />
     </div>
-    <form class="glass" style="padding:22px;" id="form-forgot">
-      <div class="field"><label>البريد الإلكتروني</label><input type="email" id="forgot-email" required></div>
-      <button type="submit" class="btn btn-primary btn-block">إرسال رابط الاستعادة</button>
-    </form>
-    <p class="auth-switch"><b id="go-login-2">العودة لتسجيل الدخول</b></p>
+    <div id="verifyResult"></div>
   </section>
 
-  <section class="screen" id="scr-verify-email">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>فعّل حسابك</h1>
-      <p>أرسلنا رسالة تفعيل إلى بريدك <b id="verify-email-display"></b> — افتح بريدك واضغط رابط التفعيل، ثم عد هنا واضغط "تحققت من التفعيل"</p>
-    </div>
-    <div class="glass" style="padding:22px;">
-      <button class="btn btn-primary btn-block" id="btn-check-verified">تحققت من التفعيل</button>
-      <button class="btn btn-secondary btn-block" style="margin-top:10px;" id="btn-resend-verify">إعادة إرسال رسالة التفعيل</button>
-      <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-cancel-verify">تسجيل الخروج</button>
-    </div>
+  <!-- ============ الرئيسية: المسارات ============ -->
+  <section class="screen active" id="screen-home">
+    <h2 class="section-title">المسارات</h2>
+    <div id="tracksList"></div>
   </section>
 
-  <section class="screen" id="scr-confirm-login">
-    <div class="auth-hero">
-      <img class="logo-mark allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="">
-      <h1>تأكيد تسجيل الدخول</h1>
-      <p>أرسلنا رابط تأكيد عبر فايربيز إلى <b id="confirm-login-email-display"></b> — افتح بريدك واضغط الرابط لإتمام الدخول (تحقّق من مجلد الرسائل غير المهمة/Spam لو ما وصلش خلال دقيقة)</p>
+  <!-- ============ مسار: الكورسات ============ -->
+  <section class="screen" id="screen-track">
+    <div class="back-row">
+      <button class="icon-btn" data-back="home"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 class="section-title" id="trackTitle" style="margin:0;"></h2>
     </div>
-    <div class="glass" style="padding:22px;">
-      <p class="meta" id="confirm-login-status" style="margin-bottom:14px;"></p>
-      <button class="btn btn-primary btn-block" id="btn-check-login-confirmed">تحققت من الرابط، تابع</button>
-      <button class="btn btn-secondary btn-block" style="margin-top:10px;" id="btn-resend-login-confirm">إعادة إرسال الرابط</button>
-      <button class="btn btn-ghost btn-block" style="margin-top:8px;" id="btn-cancel-login-confirm">تسجيل الخروج</button>
-    </div>
+    <p class="article-text" id="trackDesc" style="margin-bottom:16px;"></p>
+    <div class="grid-2" id="coursesList"></div>
   </section>
 
-</div>
-
-<!-- ============ نافذة إكمال بيانات جوجل (إجباري) ============ -->
-<div class="overlay" id="overlay-google-complete">
-  <div class="sheet glass-strong">
-    <div class="sheet-handle"></div>
-    <h2>إكمال البيانات</h2>
-    <p style="margin-bottom:16px;">لإتمام إنشاء حسابك، أدخل البيانات التالية</p>
-    <form id="form-google-complete">
-      <div class="field"><label>الاسم الأول</label><input type="text" id="gc-fname" required></div>
-      <div class="field"><label>الاسم الثاني</label><input type="text" id="gc-mname" required></div>
-      <div class="field"><label>الاسم الثالث</label><input type="text" id="gc-lname" required></div>
-      <div class="field">
-        <label>اسم المستخدم (إنجليزي، حروف صغيرة، بدون مسافات)</label>
-        <input type="text" id="gc-username" required pattern="[a-z0-9_.]+">
-      </div>
-      <div class="field"><label>رقم الهاتف</label><input type="tel" id="gc-phone" required></div>
-      <button type="submit" class="btn btn-primary btn-block">حفظ ومتابعة</button>
-    </form>
-  </div>
-</div>
-
-<!-- ============ التطبيق الرئيسي ============ -->
-<div id="app" style="display:none;">
-
-  <div class="topbar">
-    <img class="logo allow-context" src="https://i.ibb.co/PZsJ4ptx/logo.png" alt="سرمد">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span class="pill" id="streak-badge" style="display:none;"></span>
-      <button class="icon-btn" id="btn-notifications" aria-label="الإشعارات" style="position:relative;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-        <span id="notif-dot" style="display:none; position:absolute; top:6px; left:6px; width:9px; height:9px; border-radius:50%; background:var(--red); border:2px solid #fff;"></span>
-      </button>
-      <button class="icon-btn" id="btn-favorites" aria-label="المفضلة">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-      </button>
-      <button class="icon-btn" id="btn-leaderboard" aria-label="المتصدرون">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3a2 2 0 0 1-2 4M7 5H4a2 2 0 0 0 2 4"/></svg>
-      </button>
+  <!-- ============ كورس: المحاضرات ============ -->
+  <section class="screen" id="screen-course">
+    <div class="back-row">
+      <button class="icon-btn" data-back="track"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 class="section-title" id="courseTitle" style="margin:0;"></h2>
     </div>
-  </div>
-
-  <!-- الرئيسية: المسارات -->
-  <section class="screen" id="scr-home">
-    <h2 style="font-size:20px; margin-bottom:2px;">مرحبًا</h2>
-    <p style="margin-bottom:14px;" id="home-username">اختر مسارك وابدأ التعلم</p>
-
-    <div class="field" style="margin-bottom:16px;">
-      <input type="text" id="home-search" placeholder="ابحث عن مسار...">
+    <div class="card" style="padding:14px;margin-bottom:16px;">
+      <p class="article-text" id="courseDesc"></p>
+      <p class="sub" style="margin-top:10px;" id="courseInstructor"></p>
+      <div id="courseEnrollBox" style="margin-top:12px;"></div>
     </div>
-
-    <div id="continue-learning-slot"></div>
-    <div id="daily-challenge-slot"></div>
-
-    <div class="section-title"><h2>المسارات</h2></div>
-    <div id="tracks-list"><div class="spinner"></div></div>
+    <h3 style="margin-bottom:10px;">المحاضرات</h3>
+    <div id="lecturesList"></div>
   </section>
 
-  <!-- المفضلة -->
-  <section class="screen" id="scr-favorites">
-    <button class="icon-btn back-btn" data-back="scr-home" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <h1>المفضلة</h1>
-    <p style="margin-bottom:16px;">المسارات والكورسات التي حفظتها</p>
-    <div id="favorites-list"><div class="spinner"></div></div>
+  <!-- ============ محاضرة: المهام ============ -->
+  <section class="screen" id="screen-lecture">
+    <div class="back-row">
+      <button class="icon-btn" data-back="course"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 class="section-title" id="lectureTitle" style="margin:0;"></h2>
+    </div>
+    <p class="article-text" id="lectureDesc" style="margin-bottom:16px;"></p>
+    <div id="tasksList"></div>
   </section>
 
-  <!-- لوحة المتصدرين -->
-  <section class="screen" id="scr-leaderboard">
-    <button class="icon-btn back-btn" data-back="scr-home" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <h1>لوحة المتصدرين</h1>
-    <p style="margin-bottom:16px;">الأعلى نقاطًا في المنصة</p>
-    <div id="leaderboard-list"><div class="spinner"></div></div>
+  <!-- ============ عرض المهمة ============ -->
+  <section class="screen" id="screen-task">
+    <div class="back-row">
+      <button class="icon-btn" data-back="lecture"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 class="section-title" id="taskTitle" style="margin:0;"></h2>
+    </div>
+    <div id="taskBody"></div>
   </section>
 
-  <!-- الإشعارات -->
-  <section class="screen" id="scr-notifications">
-    <button class="icon-btn back-btn" data-back="scr-home" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <h1>الإشعارات</h1>
-    <p style="margin-bottom:16px;">آخر تحديثاتك على المنصة</p>
-    <div id="notifications-list"><div class="spinner"></div></div>
-  </section>
-
-  <!-- تفاصيل المسار -->
-  <section class="screen" id="scr-track">
-    <button class="icon-btn back-btn" data-back="scr-home" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <img class="card-thumb-wide allow-context" id="track-image" style="height:170px;" src="">
-    <h1 id="track-title"></h1>
-    <p id="track-desc"></p>
-    <div class="section-title"><h2>الكورسات</h2></div>
-    <div id="track-courses"><div class="spinner"></div></div>
-  </section>
-
-  <!-- تفاصيل الكورس -->
-  <section class="screen" id="scr-course">
-    <button class="icon-btn back-btn" data-back="scr-track" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <div style="position:relative;">
-      <img class="card-thumb-wide allow-context" id="course-image" style="height:170px;" src="">
-      <button class="icon-btn" id="btn-fav-course" style="position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.85);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-      </button>
-    </div>
-    <h1 id="course-title"></h1>
-    <div class="pill-row">
-      <span class="pill" id="course-instructor"></span>
-      <span class="pill" id="course-start"></span>
-      <span class="pill" id="course-rating-summary">☆ —</span>
-      <span class="pill" id="course-enrolled-count" style="display:none;"></span>
-    </div>
-    <p id="course-desc"></p>
-    <div id="course-progress-wrap" style="margin:16px 0;">
-      <div class="progress-track"><div class="progress-fill" id="course-progress-fill" style="width:0%"></div></div>
-      <p class="meta" style="margin-top:6px;" id="course-progress-text"></p>
-      <p class="meta" id="course-avg-compare" style="margin-top:2px;"></p>
-    </div>
-    <div id="course-paywall"></div>
-
-    <div class="section-title"><h2>التقييمات</h2></div>
-    <div class="glass" style="padding:16px; margin-bottom:16px;">
-      <div id="star-input" style="display:flex; gap:6px; font-size:26px; cursor:pointer; margin-bottom:10px;"></div>
-      <textarea id="rating-comment" placeholder="اكتب رأيك (اختياري)..." rows="2" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:10px; font-family:inherit; font-size:13.5px; margin-bottom:8px;"></textarea>
-      <button class="btn btn-secondary btn-block" id="btn-submit-rating">إرسال التقييم</button>
-      <div id="ratings-list" style="margin-top:14px;"></div>
-    </div>
-
-    <div class="section-title"><h2>المحاضرات</h2></div>
-    <div id="course-lectures"><div class="spinner"></div></div>
-  </section>
-
-  <!-- تفاصيل المحاضرة -->
-  <section class="screen" id="scr-lecture">
-    <button class="icon-btn back-btn" data-back="scr-course" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <h1 id="lecture-title"></h1>
-    <p id="lecture-desc"></p>
-    <div class="pill-row">
-      <span class="pill" id="lecture-duration"></span>
-      <span class="pill" id="lecture-tasks-count"></span>
-    </div>
-    <button class="btn btn-secondary btn-block" id="btn-lecture-notes" style="margin-bottom:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      ملاحظاتي الخاصة على هذه المحاضرة
-    </button>
-
-    <div class="glass" style="padding:16px; margin-bottom:14px; text-align:center;" id="pomodoro-card">
-      <div class="pomodoro-ring" id="pomodoro-ring" style="display:none;"><span id="pomodoro-time">25:00</span></div>
-      <button class="btn btn-primary" id="btn-pomodoro-start" style="display:inline-flex; align-items:center; gap:8px;">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        بدء جلسة مذاكرة (25 دقيقة)
-      </button>
-      <button class="btn btn-ghost" id="btn-pomodoro-stop" style="display:none;">إيقاف الجلسة</button>
-    </div>
-
-    <div class="section-title"><h2>المهام</h2></div>
-    <div id="lecture-tasks"><div class="spinner"></div></div>
-
-    <div class="section-title"><h2>هل كانت المحاضرة مفيدة؟</h2></div>
-    <div id="lecture-feedback" style="display:flex; gap:10px; margin-bottom:20px;"></div>
-
-    <div class="section-title"><h2>أسئلة على المحاضرة</h2></div>
-    <div class="glass" style="padding:14px; margin-bottom:14px;">
-      <textarea id="lecture-question-text" placeholder="اسأل عن هذه المحاضرة تحديدًا..." rows="2" style="width:100%; border:none; outline:none; font-family:inherit; font-size:13.5px; resize:none; background:transparent;"></textarea>
-      <button class="btn btn-primary" style="margin-top:8px;" id="btn-post-lecture-q">إرسال</button>
-    </div>
-    <div id="lecture-qna"></div>
-  </section>
-
-  <!-- ورقة الملاحظات الخاصة -->
-  <div class="overlay" id="overlay-notes">
-    <div class="sheet glass-strong">
-      <div class="sheet-handle"></div>
-      <h2>ملاحظاتي</h2>
-      <textarea id="notes-textarea" rows="8" style="width:100%; border:1px solid var(--line); border-radius:14px; padding:12px; font-family:inherit; font-size:14px; margin:12px 0;"></textarea>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary" style="flex:1;" id="btn-close-notes">إغلاق</button>
-        <button class="btn btn-primary" style="flex:1;" id="btn-save-notes">حفظ</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- المنتدى -->
-  <section class="screen" id="scr-forum">
-    <h1>منتدى الأسئلة</h1>
-    <p style="margin-bottom:16px;">اسأل، شارك صورة، وناقش زملاءك</p>
-    <div class="glass" style="padding:14px; margin-bottom:18px;">
-      <textarea id="forum-text" placeholder="اكتب سؤالك هنا..." rows="3" style="width:100%; border:none; outline:none; font-family:inherit; font-size:14.5px; resize:none; background:transparent;"></textarea>
-      <div id="forum-preview" style="display:none; margin:8px 0;"><img id="forum-preview-img" style="width:70px;height:70px;border-radius:12px;object-fit:cover;"></div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-        <label class="icon-btn" style="cursor:pointer;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          <input type="file" accept="image/*" id="forum-image" style="display:none;">
+  <!-- ============ المنتدى ============ -->
+  <section class="screen" id="screen-forum">
+    <h2 class="section-title">منتدى الأسئلة</h2>
+    <div class="card" style="padding:14px;margin-bottom:16px;">
+      <div class="field"><textarea id="forumText" rows="3" placeholder="اكتب سؤالك هنا..."></textarea></div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <label class="btn-sm btn-ghost" style="cursor:pointer;">
+          إرفاق صورة
+          <input type="file" id="forumImage" accept="image/*" style="display:none;" />
         </label>
-        <button class="btn btn-primary" id="btn-post-forum">نشر</button>
+        <span class="sub" id="forumImageName"></span>
       </div>
+      <button class="btn btn-primary" id="btnPostForum" style="margin-top:12px;">نشر السؤال</button>
     </div>
-    <div id="forum-list"><div class="spinner"></div></div>
+    <div id="forumList"></div>
   </section>
 
-  <!-- لوحة التقدم / الحساب -->
-  <section class="screen" id="scr-profile">
-    <h1>حسابي</h1>
-    <div class="glass" style="padding:20px; margin-bottom:16px;" id="profile-card">
-      <div class="spinner"></div>
+  <!-- ============ لوحتي (الداشبورد) ============ -->
+  <section class="screen" id="screen-dashboard">
+    <h2 class="section-title">لوحتي</h2>
+    <div class="grid-2" style="margin-bottom:18px;">
+      <div class="card stat-card"><div class="num" id="statCourses">0</div><div class="sub">كورسات مشترك بها</div></div>
+      <div class="card stat-card"><div class="num" id="statDone">0</div><div class="sub">مهام مكتملة</div></div>
     </div>
-    <div class="section-title"><h2>تقرير التقدم</h2></div>
-    <div class="glass report-watermark" style="padding:18px; margin-bottom:16px;" id="progress-report">
-      <div class="spinner"></div>
-    </div>
+    <h3 style="margin-bottom:10px;">تقدّمي في الكورسات</h3>
+    <div id="dashboardCourses"></div>
+    <h3 style="margin:20px 0 10px;">شهاداتي</h3>
+    <div id="certificatesList"></div>
+    <h3 style="margin:20px 0 10px;">سجل الاشتراكات</h3>
+    <div id="subscriptionHistory"></div>
+    <button class="btn btn-ghost no-print" style="margin-top:16px;" onclick="window.print()">طباعة تقرير التقدم</button>
+    <div class="print-watermark"><img src="https://i.ibb.co/Z6RvKsNd/Picsart-26-08-21-02-56-13-099.png" alt="سرمد" /></div>
+  </section>
 
-    <div class="section-title"><h2>النقاط والأوسمة</h2></div>
-    <div class="glass" style="padding:18px; margin-bottom:16px;" id="points-badges-card"><div class="spinner"></div></div>
+  <!-- ============ حسابي ============ -->
+  <section class="screen" id="screen-profile">
+    <h2 class="section-title">حسابي</h2>
+    <div class="card" style="padding:16px;margin-bottom:16px;" id="profileInfo"></div>
 
-    <div class="section-title"><h2>ادعُ صديقًا</h2></div>
-    <div class="glass" style="padding:18px; margin-bottom:16px;" id="referral-card"></div>
-
-    <button class="btn btn-secondary btn-block" id="btn-share-progress" style="margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:8px;">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
-      مشاركة ملخص تقدمي
-    </button>
-
-    <div class="section-title"><h2>شهاداتي</h2></div>
-    <div id="my-certificates" style="margin-bottom:20px;"><p class="meta">لا توجد شهادات بعد</p></div>
-
-    <div class="section-title"><h2>اشتراكاتي</h2></div>
-    <div id="my-subs" style="margin-bottom:20px;"><p class="meta">لا توجد اشتراكات بعد</p></div>
-
-    <div class="section-title"><h2>إعدادات الحساب</h2></div>
-    <p class="meta" id="last-login-line" style="margin-bottom:10px;"></p>
-
-    <p class="meta" style="font-weight:700; color:var(--ink); margin-bottom:8px;">المعلومات الشخصية</p>
-    <form class="glass" style="padding:18px; margin-bottom:16px;" id="form-edit-profile">
-      <div class="field"><label>اسم المستخدم</label><input type="text" id="edit-username" pattern="[a-z0-9_.]+"></div>
-      <div class="field"><label>رقم الهاتف</label><input type="tel" id="edit-phone"></div>
-      <button type="submit" class="btn btn-secondary btn-block">حفظ التعديلات</button>
-    </form>
-
-    <p class="meta" style="font-weight:700; color:var(--ink); margin-bottom:8px;">الأمان</p>
-    <form class="glass" style="padding:18px; margin-bottom:12px;" id="form-change-email">
-      <div class="field"><label>البريد الإلكتروني الحالي</label><input type="email" id="current-email-display" disabled></div>
-      <div class="field"><label>البريد الإلكتروني الجديد</label><input type="email" id="new-email" required></div>
-      <button type="submit" class="btn btn-secondary btn-block">تغيير البريد الإلكتروني</button>
-      <p class="hint" id="change-email-status">سيصلك رابط تأكيد على البريد الجديد من فايربيز، ولن يتغيّر البريد إلا بعد الضغط عليه</p>
-    </form>
-    <form class="glass" style="padding:18px; margin-bottom:12px;" id="form-change-pass">
-      <div class="field"><label>كلمة مرور جديدة</label><input type="password" id="new-pass" minlength="6" required></div>
-      <button type="submit" class="btn btn-secondary btn-block">تغيير كلمة المرور</button>
-    </form>
-    <div class="glass" style="padding:18px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div class="card" style="padding:16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-weight:700; font-size:14px;">تفعيل البريد الإلكتروني</div>
-          <div class="meta" id="email-verified-status">—</div>
+          <h4>محفظتي</h4>
+          <span class="sub">الرصيد: <b id="walletBalance">0</b>$</span>
         </div>
-        <button class="btn btn-secondary" id="btn-resend-verify-settings" style="flex-shrink:0; padding:9px 14px; font-size:12.5px; display:none;">إعادة الإرسال</button>
+        <button class="btn-sm btn-secondary" id="btnTopUpWallet">شحن المحفظة</button>
       </div>
     </div>
 
-    <button class="btn btn-secondary btn-block" id="btn-contact">تواصل معنا</button>
-    <button class="btn btn-ghost btn-block" style="margin-top:10px;" id="btn-logout">تسجيل الخروج</button>
-    <button class="btn btn-ghost btn-block" style="margin-top:10px; color:var(--red);" id="btn-delete-account">حذف الحساب نهائيًا</button>
+    <div class="card" style="padding:16px;margin-bottom:16px;">
+      <h4 style="margin-bottom:12px;">أمان الحساب</h4>
+      <button class="btn btn-ghost" id="btnResendVerify" style="margin-bottom:10px;">إعادة إرسال تفعيل البريد</button>
+      <button class="btn btn-ghost" id="btnChangePassword" style="margin-bottom:10px;">تغيير كلمة المرور</button>
+      <button class="btn btn-ghost" id="btnChangeEmail">تغيير البريد الإلكتروني</button>
+    </div>
+
+    <button class="btn btn-ghost" id="btnLogout">تسجيل الخروج</button>
   </section>
 
-  <!-- صفحة كاملة للفيديو والاختبار (بدل النافذة المنبثقة) -->
-  <section class="screen" id="scr-task-fullpage" style="padding-bottom:40px;">
-    <button class="icon-btn back-btn" data-back="scr-lecture" style="margin-bottom:14px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
+  <!-- ============ Bottom Nav ============ -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-nav="home">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 11.5L12 4l8 7.5M6 10v9h12v-9"/></svg>
+      المسارات
     </button>
-    <div id="task-fullpage-body"></div>
-  </section>
+    <button class="nav-btn" data-nav="forum">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 5h16v11H8l-4 4V5z"/></svg>
+      المنتدى
+    </button>
+    <button class="nav-btn" data-nav="dashboard">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 19V9m6 10V4m6 15v-7"/></svg>
+      لوحتي
+    </button>
+    <button class="nav-btn" data-nav="profile">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 20c1.8-3.2 4.8-5 8-5s6.2 1.8 8 5"/></svg>
+      حسابي
+    </button>
+  </nav>
 
+  <!-- زر تواصل معنا -->
+  <button class="contact-fab no-print" id="btnContact" title="تواصل معنا" aria-label="تواصل معنا">
+    <svg viewBox="0 0 24 24" stroke="#fff" stroke-width="1.8" fill="none"><path d="M4 5h16v11H8l-4 4V5z"/><path d="M8 9h8M8 12h5"/></svg>
+  </button>
+
+  <div id="toastHost"></div>
+  <div id="modalHost"></div>
 </div>
 
-<!-- ============ ورقة المهمة (تفتح فوق أي شاشة) ============ -->
-<div class="overlay" id="overlay-task">
-  <div class="sheet glass-strong" id="task-sheet-content" style="max-height:92vh;">
-    <div class="sheet-handle"></div>
-    <div id="task-body"></div>
-  </div>
-</div>
-
-<!-- ============ شريط التنقل السفلي ============ -->
-<nav class="tabbar" id="tabbar" style="display:none;">
-  <button class="tab-item active" data-tab="scr-home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-    <span>الرئيسية</span>
-  </button>
-  <button class="tab-item" data-tab="scr-forum">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5H4l3-3.5a8.38 8.38 0 0 1 6.5-13.5 8.38 8.38 0 0 1 7.5 8.5z"/></svg>
-    <span>المنتدى</span>
-  </button>
-  <button class="tab-item" data-tab="scr-profile">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
-    <span>حسابي</span>
-  </button>
-</nav>
-
-<script src="https://www.paypal.com/sdk/js?client-id=AW_M1acPABnrPp2AJklYALUDZ1OUA2NS6CPGp3D3ZB9fVIfmfD87le9WZmHF3fOCqINDO3RAtQGWLteZ&currency=USD"></script>
-<script type="module" src="./app.js"></script>
+<!-- Firebase (modular v10) -->
+<script type="module" src="./script.js"></script>
 </body>
 </html>
